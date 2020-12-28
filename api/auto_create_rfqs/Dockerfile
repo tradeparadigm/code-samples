@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.2
 FROM python:3.8-slim-buster
 
 ENV PARADIGM_ACCESS_KEY=""
@@ -12,10 +13,11 @@ ENV BIT_HTTP_HOST="https://testapi.bitexch.dev/v1"
 ENV PARADIGM_WS_URL="wss://ws.api.test.paradigm.co/"
 ENV PARADIGM_HTTP_HOST="https://api.test.paradigm.co"
 
+# Install requirements
 COPY requirements.txt /
-
 RUN pip install -r /requirements.txt
 
-COPY AutoTakerCreateRFQs.py /
+# Copy Source
+COPY auto_create_rfqs.py /
 
-CMD ["sh", "-c", "python /AutoTakerCreateRFQs.py"]
+CMD ["python", "/auto_create_rfqs.py"]

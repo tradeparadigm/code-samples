@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.2
 FROM python:3.8-slim-buster
 
 ENV PARADIGM_ACCESS_KEY=""
@@ -11,10 +12,11 @@ ENV BIT_HTTP_HOST="https://testapi.bitexch.dev/v1"
 ENV PARADIGM_WS_URL="wss://ws.api.nightly.paradigm.co/"
 ENV PARADIGM_HTTP_HOST="https://api.nightly.paradigm.co"
 
+# Install requirements
 COPY requirements.txt /
-
 RUN pip install -r /requirements.txt
 
+# Copy Source
 COPY market_maker.py /
 
-CMD ["sh", "-c", "python /market_maker.py"]
+CMD ["python", "/market_maker.py"]
