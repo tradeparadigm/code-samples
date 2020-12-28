@@ -6,16 +6,16 @@ Usage:
     python3 market_maker.py [ACCESS KEY] [ACCESS SECRET]
 
 Environment Variables:
-    Paradigm Access Key
-    Paradigm Sceret Key
-    Paradigm Account Name - DBT
-    Paradigm Account Name - BIT
-    Paradigm Account Name - CME
-    Paradigm Desk Name
-    HTTP Host - DBT
-    HTTP Host - BIT
-    Paradigm WS URL
-    Paradigm HTTP Host
+    PARADIGM_ACCESS_KEY:       Paradigm Access Key
+    PARADIGM_SECRET_KEY:       Paradigm Sceret Key
+    PARADIGM_ACCOUNT_NAME_DBT: Paradigm Account Name - DBT
+    PARADIGM_ACCOUNT_NAME_BIT: Paradigm Account Name - BIT
+    PARADIGM_ACCOUNT_NAME_CME: Paradigm Account Name - CME
+    PARADIGM_DESK_NAME:        Paradigm Desk Name
+    DBT_HTTP_HOST:             HTTP Host - DBT
+    BIT_HTTP_HOST:             HTTP Host - BIT
+    PARADIGM_WS_URL:           Paradigm WS URL
+    PARADIGM_HTTP_HOST:        Paradigm HTTP Host
 
 Requirements:
     pip3 install requests websockets
