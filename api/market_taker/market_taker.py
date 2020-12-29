@@ -8,10 +8,6 @@ Usage:
 Environment Variables:
     PARADIGM_ACCESS_KEY:       Paradigm Access Key
     PARADIGM_SECRET_KEY:       Paradigm Sceret Key
-    PARADIGM_ACCOUNT_NAME_DBT: Paradigm Account Name - DBT
-    PARADIGM_ACCOUNT_NAME_BIT: Paradigm Account Name - BIT
-    PARADIGM_ACCOUNT_NAME_CME: Paradigm Account Name - CME
-    PARADIGM_DESK_NAME:        Paradigm Desk Name
     DBT_HTTP_HOST:             HTTP Host - DBT
     BIT_HTTP_HOST:             HTTP Host - BIT
     PARADIGM_WS_URL:           Paradigm WS URL
@@ -28,13 +24,13 @@ import hmac
 import json
 import os
 import random
-import requests
 import sys
 import time
 import traceback
-import websockets
-
 from urllib.parse import urljoin
+
+import requests
+import websockets
 
 
 try:
@@ -45,9 +41,8 @@ except IndexError:
     PARADIGM_SECRET_KEY = None
 
 
-async def main(access_key, secret_key, paradigm_account_information,
-               paradigm_ws_url, dbt_http_host, bit_http_host,
-               paradigm_http_host):
+async def main(access_key, secret_key, paradigm_ws_url, dbt_http_host,
+               bit_http_host, paradigm_http_host):
     """
     Primary async function.
     Initially subscribe to all notification channels and create auto quote executor task.
@@ -76,13 +71,10 @@ async def main(access_key, secret_key, paradigm_account_information,
         while True:
             message = await websocket.recv()
             message = json.loads(message)
-            # print(f'> {message}')
             if 'params' in message:
                 if 'channel' in message['params'].keys():
                     if message['params']['channel'] == 'rfq':
-                        # print('> Incoming RFQ')
                         rfq_details = message['params']['data']
-                        # print(f'> {rfq_details}')
 
                         # Add RFQ Id to RFQ dict initially upon RFQ creation
                         if (
@@ -97,9 +89,7 @@ async def main(access_key, secret_key, paradigm_account_information,
                                 rfqs_dict.pop(rfq_details['rfq_id'], None)
 
                     if message['params']['channel'] == 'quote':
-                        # print('> Incoming Quote')
                         quote_details = message['params']['data']
-                        # print(f'> {quote_details}')
 
                         quote_id = quote_details['quote_id']
                         rfq_id = quote_details['rfq_id']
@@ -126,10 +116,6 @@ async def main(access_key, secret_key, paradigm_account_information,
                                     }
 
                     if message['params']['channel'] == 'trade_confirmation':
-                        # print('> Incoming Trade_Confirmation')
-                        # trade_confirmation_details = message['params']['data']
-                        # print(f'> {trade_confirmation_details}')
-
                         rfq_id = message['params']['data']['rfq_id']
 
                         # Remove RFQ Id from RFQ dict upon successful Trade
@@ -239,12 +225,6 @@ def quote_aggregator(rfqs_dict, rfq_id):
                     rfqs_dict[rfq_id][_quote_id][instrument]['offer_quantity'].replace(',', ''),
                 )
 
-                # print('Instrument Name: {}'.format(instrument))
-                # print('Direction: {}'.format(_side))
-                # print('Bid Price: {}'.format(_bid_price))
-                # print('Offer Price: {}'.format(_offer_price))
-                # print('Desk: {}'.format(_desk))
-
                 # Price and Quantity values to provide to the payload
                 # depending upon the direction_choice
                 if direction_choice == 'BUY':
@@ -322,12 +302,9 @@ def quote_execute(best_quote_data, dbt_http_host,
     """
     Sends over REST the provided /quote/excute/ payload.
     """
-    # print('Payload to Execute')
-    # print(best_quote_data)
     method = 'POST'
     path = '/quote/execute/'
 
-    # print('> Quote/Execute Request Data: \n', data)
     body = json.dumps(best_quote_data).encode('utf-8')
 
     message = method.encode('utf-8') + b'\n'
@@ -349,8 +326,6 @@ def quote_execute(best_quote_data, dbt_http_host,
     response = requests.post(
         urljoin(paradigm_http_host, path), headers=headers, json=best_quote_data,
     )
-    # print('> Response Code: ', response.status_code)
-    # print('> Quote/Execute Response Data: \n', response.content)
     return response
 
 
@@ -436,18 +411,6 @@ if __name__ == '__main__':
     PARADIGM_SECRET_KEY = os.getenv(
         'PARADIGM_SECRET_KEY', PARADIGM_SECRET_KEY,
     )
-    PARADIGM_ACCOUNT_NAME_DBT = os.getenv(
-        'PARADIGM_ACCOUNT_NAME_DBT', 'ParadigmTestOne',
-    )
-    PARADIGM_ACCOUNT_NAME_BIT = os.getenv(
-        'PARADIGM_ACCOUNT_NAME_BIT', 'ParadigmTestOne',
-    )
-    PARADIGM_ACCOUNT_NAME_CME = os.getenv(
-        'PARADIGM_ACCOUNT_NAME_CME', 'ParadigmTestOne',
-    )
-    PARADIGM_DESK_NAME = os.getenv(
-        'PARADIGM_DESK_NAME', 'DSK1',
-    )
 
     DBT_HTTP_HOST = os.getenv(
         'DBT_HTTP_HOST', 'https://test.deribit.com/api/v2',
@@ -462,21 +425,7 @@ if __name__ == '__main__':
         'PARADIGM_HTTP_HOST', 'https://api.test.paradigm.co',
     )
 
-    paradigm_account_information = {
-        'desk': os.environ['PARADIGM_DESK_NAME'],
-        'name': {
-            'DBT': PARADIGM_ACCOUNT_NAME_DBT,
-            'BIT': PARADIGM_ACCOUNT_NAME_BIT,
-            'CME': PARADIGM_ACCOUNT_NAME_CME
-        }
-    }
     try:
-        print(f'Paradigm Access Key: {PARADIGM_ACCESS_KEY}')
-        print(f'Paradigm Sceret Key: {PARADIGM_SECRET_KEY}')
-        print(f'Paradigm Account Name - DBT: {PARADIGM_ACCOUNT_NAME_DBT}')
-        print(f'Paradigm Account Name - BIT: {PARADIGM_ACCOUNT_NAME_BIT}')
-        print(f'Paradigm Account Name - CME: {PARADIGM_ACCOUNT_NAME_CME}')
-        print(f'Paradigm Desk Name: {PARADIGM_DESK_NAME}')
         print(f'HTTP Host - DBT: {DBT_HTTP_HOST}')
         print(f'HTTP Host - BIT: {BIT_HTTP_HOST}')
         print(f'Paradigm WS URL: {PARADIGM_WS_URL}')
@@ -487,7 +436,6 @@ if __name__ == '__main__':
             main(
                 access_key=PARADIGM_ACCESS_KEY,
                 secret_key=PARADIGM_SECRET_KEY,
-                paradigm_account_information=paradigm_account_information,
                 dbt_http_host=DBT_HTTP_HOST,
                 bit_http_host=BIT_HTTP_HOST,
                 paradigm_ws_url=PARADIGM_WS_URL,

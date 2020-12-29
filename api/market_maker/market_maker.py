@@ -28,13 +28,14 @@ import hmac
 import json
 import os
 import random
-import requests
 import sys
 import time
-import websockets
-
 from random import randint
 from urllib.parse import urljoin
+
+import requests
+import websockets
+
 
 try:
     PARADIGM_ACCESS_KEY = sys.argv[1]
@@ -68,13 +69,10 @@ async def main(access_key, secret_key, paradigm_account_information,
         while True:
             message = await websocket.recv()
             message = json.loads(message)
-            # print(f'> {message}')
             if 'params' in message:
                 if 'channel' in message['params'].keys():
                     if message['params']['channel'] == 'rfq':
-                        # print('> Incoming RFQ')
                         rfq_details = message['params']['data']
-                        # print(f'> {rfq_details}')
 
                         if message['params']['data']['status'] == 'ACTIVE':
                             # Do not offer a Quote if the venue is CME
@@ -84,7 +82,8 @@ async def main(access_key, secret_key, paradigm_account_information,
                             response = await quote_rfq(rfq_details, min_tick_size,
                                                        dbt_http_host, bit_http_host,
                                                        access_key, secret_key,
-                                                       paradigm_http_host)
+                                                       paradigm_http_host,
+                                                       paradigm_account_information)
                             if response.status_code == 200:
                                 response_json = json.loads(response.text)
                                 print('Successfully Quoted')
@@ -93,10 +92,9 @@ async def main(access_key, secret_key, paradigm_account_information,
 
 
 # Quote Create Functions
-async def quote_rfq(rfq_details, min_tick_size,
-                    dbt_http_host, bit_http_host,
-                    access_key, secret_key,
-                    paradigm_http_host):
+async def quote_rfq(rfq_details, min_tick_size, dbt_http_host, bit_http_host,
+                    access_key, secret_key, paradigm_http_host,
+                    account_information):
     """
     Call the construct quote function as well
     as create the required HTTP signature.
@@ -105,9 +103,8 @@ async def quote_rfq(rfq_details, min_tick_size,
     method = 'POST'
     path = '/quote/create/'
 
-    data = construct_rfq_quote_data(rfq_details, min_tick_size,
-                                    dbt_http_host, bit_http_host)
-    # print('> Quote/Create Request Data: \n', data)
+    data = construct_rfq_quote_data(rfq_details, min_tick_size, dbt_http_host,
+                                    bit_http_host, account_information)
     body = json.dumps(data).encode('utf-8')
 
     message = method.encode('utf-8') + b'\n'
@@ -127,17 +124,15 @@ async def quote_rfq(rfq_details, min_tick_size,
     }
 
     response = requests.post(urljoin(paradigm_http_host, path), headers=headers, json=data)
-    # print('> Response Code: ', response.status_code)
-    # print('> Quote/Create Response Data: \n', response.json())
     return response
 
 
-def construct_rfq_quote_data(rfq_details, min_tick_size,
-                             dbt_http_host, bit_http_host):
+def construct_rfq_quote_data(rfq_details, min_tick_size, dbt_http_host,
+                             bit_http_host, account_information):
     """
     Create Quote payload.
     """
-    client_order_id = f'{paradigm_account_information["desk"]}{randint(1, 1000000000)}'
+    client_order_id = f'{account_information["desk"]}{randint(1, 1000000000)}'
     quote_legs = []
     for leg in rfq_details['legs']:
         quote_leg = {}
@@ -153,14 +148,13 @@ def construct_rfq_quote_data(rfq_details, min_tick_size,
         else:
             mark = get_mark_price(venue, leg['instrument'], dbt_http_host, bit_http_host)
             bid, offer = get_bid_and_ask_price(venue, leg['instrument'], mark, min_tick_size)
-            # print(f'> mark_price:{mark}, bid_price:{bid}, offer_price:{offer}')
             quote_leg['bid_price'] = bid
             quote_leg['offer_price'] = offer
         quote_legs.append(quote_leg)
 
     data = {
         'account': {
-            'name': paradigm_account_information['name'][venue]
+            'name': account_information['name'][venue]
         },
         'client_order_id': client_order_id,
         'expires_in': randint(60, 120),
@@ -351,7 +345,7 @@ if __name__ == '__main__':
     PARADIGM_HTTP_HOST = os.getenv('PARADIGM_HTTP_HOST', 'https://api.test.paradigm.co')
 
     paradigm_account_information = {
-        'desk': os.environ['PARADIGM_DESK_NAME'],
+        'desk': PARADIGM_DESK_NAME,
         'name': {
             'DBT': PARADIGM_ACCOUNT_NAME_DBT,
             'BIT': PARADIGM_ACCOUNT_NAME_BIT,
@@ -370,8 +364,6 @@ if __name__ == '__main__':
     }
 
     try:
-        print(f'Paradigm Access Key: {PARADIGM_ACCESS_KEY}')
-        print(f'Paradigm Sceret Key: {PARADIGM_SECRET_KEY}')
         print(f'Paradigm Account Name - DBT: {PARADIGM_ACCOUNT_NAME_DBT}')
         print(f'Paradigm Account Name - BIT: {PARADIGM_ACCOUNT_NAME_BIT}')
         print(f'Paradigm Account Name - CME: {PARADIGM_ACCOUNT_NAME_CME}')
@@ -384,13 +376,13 @@ if __name__ == '__main__':
         # Start the client
         asyncio.get_event_loop().run_until_complete(
             main(
-                access_key=os.environ['PARADIGM_ACCESS_KEY'],
-                secret_key=os.environ['PARADIGM_SECRET_KEY'],
+                access_key=PARADIGM_ACCESS_KEY,
+                secret_key=PARADIGM_SECRET_KEY,
                 paradigm_account_information=paradigm_account_information,
-                dbt_http_host=os.environ['DBT_HTTP_HOST'],
-                bit_http_host=os.environ['BIT_HTTP_HOST'],
-                paradigm_ws_url=os.environ['PARADIGM_WS_URL'],
-                paradigm_http_host=os.environ['PARADIGM_HTTP_HOST'],
+                dbt_http_host=DBT_HTTP_HOST,
+                bit_http_host=BIT_HTTP_HOST,
+                paradigm_ws_url=PARADIGM_WS_URL,
+                paradigm_http_host=PARADIGM_HTTP_HOST,
                 min_tick_size=MIN_TICK_SIZE,
             )
         )

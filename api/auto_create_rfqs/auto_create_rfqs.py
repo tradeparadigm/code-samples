@@ -235,11 +235,9 @@ async def main(http_host, ws_url, access_key, secret_key, maker_desk_name,
         while True:
             message = await websocket.recv()
             message = json.loads(message)
-            # print(f'> {message}')
             if 'params' in message:
                 if 'channel' in message['params'].keys():
                     if message['params']['channel'] == 'rfq':
-                        # print(message['params']['data'])
                         continue
 
 
@@ -397,7 +395,7 @@ if __name__ == '__main__':
     PARADIGM_HTTP_HOST = os.getenv('PARADIGM_HTTP_HOST', 'https://api.test.paradigm.co')
 
     paradigm_account_information = {
-        'desk': os.environ['PARADIGM_DESK_NAME'],
+        'desk': PARADIGM_DESK_NAME,
         'name': {
             'DBT': PARADIGM_ACCOUNT_NAME_DBT,
             'BIT': PARADIGM_ACCOUNT_NAME_BIT,
@@ -406,8 +404,6 @@ if __name__ == '__main__':
     }
 
     try:
-        print(f'Paradigm Access Key: {PARADIGM_ACCESS_KEY}')
-        print(f'Paradigm Sceret Key: {PARADIGM_SECRET_KEY}')
         print(f'Paradigm Account Name - DBT: {PARADIGM_ACCOUNT_NAME_DBT}')
         print(f'Paradigm Account Name - BIT: {PARADIGM_ACCOUNT_NAME_BIT}')
         print(f'Paradigm Account Name - CME: {PARADIGM_ACCOUNT_NAME_CME}')
