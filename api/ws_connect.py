@@ -5,7 +5,7 @@ and prints messages it receives.
 Keeps the connection alive by sending heartbeat messages on a constant interval.
 
 Usage:
-    python3 ws_connect.py
+    python3 ws_connect.py --help
 
 Requirements:
     pip3 install click

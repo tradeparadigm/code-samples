@@ -78,16 +78,9 @@ class ParadigmRestClient():
         }
 
         # POST Request
-        response = requests.post(urljoin(self.host, action),
-                                    headers=headers,
-                                    json=data)
-
-        # Check response code for error
-        if response.status_code != 200 and response.status_code != 201:
-            logger.error('Incorrect response code: %s', response.status_code)
-            logger.error('Response body: %s', response.text)
-
-        logger.debug(json.dumps(data))
+        return requests.post(urljoin(self.host, action),
+                             headers=headers,
+                             json=data)
 
     def generate_signature(self, action, data, method):
         json_payload = json.dumps(data).encode('utf-8')
@@ -111,23 +104,31 @@ class ParadigmRestClient():
         for leg in self.legs:
             legs.append({
                 'quantity': leg.quantity,
-                'side': leg.side,
-                'instrument': leg.instrument,
-                'venue': leg.venue,
+                'side': leg.side.upper(),
+                'instrument': leg.instrument.upper(),
+                'venue': leg.venue.upper(),
             })
 
         payload = {
-            "account": {
-                "name": self.account_name
+            'account': {
+                'name': self.account_name
             },
-            "client_order_id": client_order_id,
-            "anonymous": self.is_anonymous,
-            "counterparties": self.counterparties,
-            "expires_in": self.expires_in,
-            "legs": legs,
+            'client_order_id': client_order_id,
+            'anonymous': self.is_anonymous,
+            'counterparties': self.counterparties,
+            'expires_in': self.expires_in,
+            'legs': legs,
         }
 
-        return self.request(action='/rfq/create/', data=payload, method='POST')
+        response = self.request(action='/rfq/create/', data=payload, method='POST')
+
+        # Check response code for error
+        if response.status_code != 200 and response.status_code != 201:
+            logger.error('Incorrect response code: %s', response.status_code)
+            logger.error('Response body: %s', response.text)
+        else:
+            logger.info('RFQ Created Successfully!')
+        return response
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
@@ -194,7 +195,6 @@ def create_rfq(access_key, secret_key, account_name, counterparties,
         counterparties=counterparties, expires_in=expires_in, legs=legs,
         anonymous=anonymous, access_key=access_key, secret_key=signing_key)
     client.rfq_create()
-    logger.info('RFQ Created Successfully!')
 
 
 if __name__ == "__main__":

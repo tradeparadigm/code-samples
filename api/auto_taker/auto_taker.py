@@ -1,17 +1,14 @@
 """
 Paradigm asynchronous websocket application which will automatically
-create RFQs and send them to a designated Maker. You are the Taker.
+create Deribit RFQs and send them to a designated Maker. You are the Taker.
 
 Usage:
-    python3 auto_create_rfqs.py [ACCESS KEY] [ACCESS SECRET]
+    python3 auto_taker.py [ACCESS KEY] [ACCESS SECRET]
 
 Environment Variables:
     PARADIGM_ACCESS_KEY:       Paradigm Access Key
     PARADIGM_SECRET_KEY:       Paradigm Sceret Key
-    PARADIGM_ACCOUNT_NAME_DBT: Paradigm Account Name - DBT
-    PARADIGM_ACCOUNT_NAME_BIT: Paradigm Account Name - BIT
-    PARADIGM_ACCOUNT_NAME_CME: Paradigm Account Name - CME
-    PARADIGM_DESK_NAME:        Paradigm Desk Name
+    PARADIGM_ACCOUNT_NAME_DBT: Deribit account name from admin.test.paradigm.co
     MAKER_DESK_NAME:           Maker Desk Name
     PARADIGM_WS_URL:           Paradigm WS URL
     PARADIGM_HTTP_HOST:        Paradigm HTTP Host
@@ -25,6 +22,7 @@ import base64
 import hmac
 import os
 import json
+import pprint
 import random
 import requests
 import sys
@@ -46,7 +44,7 @@ RFQ_CREATE_SECONDS = 10
 SCENARIOS = [
     {
         'anonymous': True,
-        'expires_in': 60,
+        'expires_in': 120,
         'legs': [
             {
                 'quantity': 20000,
@@ -73,7 +71,7 @@ SCENARIOS = [
             },
         ]
     },
-     {
+    {
         'expires_in': 60,
         'legs': [
             {
@@ -202,14 +200,16 @@ SCENARIOS = [
 ]
 
 
-async def main(http_host, ws_url, access_key, secret_key, maker_desk_name,
+async def main(http_host, ws_url, access_key, secret_key, maker_desk_ticker,
                account_info):
     """
     Opens the websocket connection and starts creating RFQs.
 
     Initially subscribes to all notification channels.
     """
-    async with websockets.connect(f'{ws_url}?api-key={access_key}') as websocket:
+    async with websockets.connect(
+        f'{ws_url}?api-key={access_key}&cancel_on_disconnect=false',
+    ) as websocket:
         loop = asyncio.get_event_loop()
         # Start the heartbeat thread
         loop.create_task(send_heartbeat(websocket))
@@ -228,7 +228,7 @@ async def main(http_host, ws_url, access_key, secret_key, maker_desk_name,
             http_host=http_host,
             access_key=access_key,
             secret_key=secret_key,
-            maker_desk_name=maker_desk_name,
+            maker_desk_ticker=maker_desk_ticker,
             account_info=account_info,
         ))
 
@@ -237,15 +237,15 @@ async def main(http_host, ws_url, access_key, secret_key, maker_desk_name,
             message = json.loads(message)
             if 'params' in message:
                 if 'channel' in message['params'].keys():
-                    if message['params']['channel'] == 'rfq':
-                        continue
+                    print('> Received on channel %s:' % message['params']['channel'])
+                    pprint.pprint(message['params']['data'])
 
 
-async def create_rfq_task(http_host, access_key, secret_key, maker_desk_name,
+async def create_rfq_task(http_host, access_key, secret_key, maker_desk_ticker,
                           account_info):
     """
     Task that continually runs and creates an RFQ every `RFQ_CREATE_SECONDS` seconds
-    using a random scenario from below every time.
+    using a random config from `SCENARIOS`.
     """
     while True:
         await asyncio.sleep(5)
@@ -256,11 +256,13 @@ async def create_rfq_task(http_host, access_key, secret_key, maker_desk_name,
             },
             'anonymous': False,
             'client_order_id': random_client_order_id,
-            'counterparties': [maker_desk_name],
+            'counterparties': [maker_desk_ticker],
         }
 
         payload = scenario_base_payload | random.choice(SCENARIOS)
         await create_rfq(http_host, access_key, secret_key, payload)
+        print('> Created RFQ: ')
+        pprint.pprint(payload)
         await asyncio.sleep(RFQ_CREATE_SECONDS)
 
 
@@ -376,39 +378,22 @@ if __name__ == '__main__':
     PARADIGM_SECRET_KEY = os.getenv(
         'PARADIGM_SECRET_KEY', PARADIGM_SECRET_KEY,
     )
-    PARADIGM_ACCOUNT_NAME_DBT = os.getenv(
-        'PARADIGM_ACCOUNT_NAME_DBT', 'ParadigmTestTwo',
-    )
-    PARADIGM_ACCOUNT_NAME_BIT = os.getenv(
-        'PARADIGM_ACCOUNT_NAME_BIT', 'ParadigmTestTwo',
-    )
-    PARADIGM_ACCOUNT_NAME_CME = os.getenv(
-        'PARADIGM_ACCOUNT_NAME_CME', 'ParadigmTestTwo',
-    )
-    PARADIGM_DESK_NAME = os.getenv(
-        'PARADIGM_DESK_NAME', 'DSK2',
-    )
-    MAKER_DESK_NAME = os.getenv(
-        'MAKER_DESK_NAME', 'DSK1',
-    )
+    PARADIGM_ACCOUNT_NAME_DBT = os.getenv('PARADIGM_ACCOUNT_NAME_DBT')
+    MAKER_DESK_TICKER = os.getenv('MAKER_DESK_TICKER')
     PARADIGM_WS_URL = os.getenv('PARADIGM_WS_URL', 'wss://ws.api.test.paradigm.co/')
     PARADIGM_HTTP_HOST = os.getenv('PARADIGM_HTTP_HOST', 'https://api.test.paradigm.co')
 
     paradigm_account_information = {
-        'desk': PARADIGM_DESK_NAME,
         'name': {
             'DBT': PARADIGM_ACCOUNT_NAME_DBT,
-            'BIT': PARADIGM_ACCOUNT_NAME_BIT,
-            'CME': PARADIGM_ACCOUNT_NAME_CME
         }
     }
 
     try:
+        print(f'Paradigm Account Name - DBT: {PARADIGM_ACCESS_KEY}')
+        print(f'Paradigm Account Name - DBT: {PARADIGM_SECRET_KEY}')
         print(f'Paradigm Account Name - DBT: {PARADIGM_ACCOUNT_NAME_DBT}')
-        print(f'Paradigm Account Name - BIT: {PARADIGM_ACCOUNT_NAME_BIT}')
-        print(f'Paradigm Account Name - CME: {PARADIGM_ACCOUNT_NAME_CME}')
-        print(f'Paradigm Desk Name: {PARADIGM_DESK_NAME}')
-        print(f'Maker Desk Name: {MAKER_DESK_NAME}')
+        print(f'Maker Desk Name: {MAKER_DESK_TICKER}')
         print(f'Paradigm WS URL: {PARADIGM_WS_URL}')
         print(f'Paradigm HTTP Host: {PARADIGM_HTTP_HOST}')
 
@@ -419,7 +404,7 @@ if __name__ == '__main__':
                 ws_url=PARADIGM_WS_URL,
                 access_key=PARADIGM_ACCESS_KEY,
                 secret_key=PARADIGM_SECRET_KEY,
-                maker_desk_name=MAKER_DESK_NAME,
+                maker_desk_ticker=MAKER_DESK_TICKER,
                 account_info=paradigm_account_information,
             )
         )

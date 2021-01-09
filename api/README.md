@@ -1,4 +1,4 @@
-# Paradigm API Code Samples
+# [Paradigm API Code Samples](https://docs.paradigm.co/)
 
 ## Setup
 
@@ -15,7 +15,7 @@ pipenv install --ignore-pipfile
 
 ## Available scripts
 
-### create_rfq.py
+### [create_rfq.py](create_rfq.py)
 
 The `create_rfq.py` script is CLI tool tha can be used to create multi-leg RFQs
 using the Paradigm API.
@@ -30,7 +30,7 @@ To run the script, type the following into your terminal:
 pipenv run ./create_rfq.py --help
 ```
 
-### ws_connect.py
+### [ws_connect.py](ws_connect.py)
 
 The `ws_connect.py` script is CLI tool tha can be used to connect to the
 Paradigm API Websocket interface. It will print all messages received and sends
@@ -46,41 +46,50 @@ To run the script, type the following into your terminal:
 pipenv run ./ws_connect.py --help
 ```
 
-### auto_create_rfqs
+### [auto_taker](auto_taker/)
 
-The `auto_create_rfqs` tool is designed to send an RFQ to a specific maker
-every 5 seconds. The RFQs are preconfigured and are chosen at random on each
+The `auto_taker` tool is designed to send a Deribit RFQ to a specific maker
+every 10 seconds. The RFQs are preconfigured and are chosen at random on each
 interval.
 
-See the `auto_create_rfqs.py` script in the `auto_create_rfqs` directory for
+See the `auto_taker.py` script in the `auto_taker` directory for
 further information.
 
 #### Usage
 
-The `auto_create_rfqs` tool is packaged and deployed as a Docker container.
+The `auto_taker` tool is packaged and deployed as a Docker container.
 
 The container can be configured by passing environment variables at runtime.
-For all available configuration variables, see the `auto_create_rfqs.py` source
+For all available configuration variables, see the `auto_taker.py` source
 code.
 
-To build the container iamge, type the following command into your terminal:
+To build the container image, type the following command into your terminal:
 
 ```bash
-docker build -t auto_create_rfqs auto_create_rfqs
+docker build -t auto_taker auto_taker
 ```
 
 To subsequently run the built image, type the following command into your
 terminal:
 
 ```bash
-docker run -it --rm \
-  -e PARADIGM_ACCESS_KEY=<API-Access-Key> \
-  -e PARADIGM_SECRET_KEY=<API-Secret-Key> \
-  auto_create_rfqs
-```
-_Note_: Replace `<API-Access-Key>` and `<API-Secret-Key>` with your keys.
+ACCESS_KEY="< Access Key >"
+SECRET_KEY="< Secret Key >"
+DERIBIT_ACCOUNT_NAME="< Deribit Account Name >"
+MAKER_DESK_TICKER="< Maker Desk Ticker >"
 
-### market_maker
+docker run -it  --rm \
+  -e PARADIGM_ACCESS_KEY="$ACCESS_KEY" \
+  -e PARADIGM_SECRET_KEY="$SECRET_KEY" \
+  -e PARADIGM_ACCOUNT_NAME_DBT="$DERIBIT_ACCOUNT_NAME" \
+  -e MAKER_DESK_TICKER="$MAKER_DESK_TICKER" \
+  auto_taker
+```
+_Note_: Edit the first few lines with your API credentials, the Deribit
+account name configured on your desk's admin dashboard, and the maker desk
+ticker you want the RFQs sent to. 
+
+### [market_maker](marker_maker/)
 
 The `market_maker` tool is designed to automatically respond to RFQs via the
 Paradigm API. The tool responds to RFQs with random prices from the exchange's
@@ -107,14 +116,25 @@ To subsequently run the built image, type the following command into your
 terminal:
 
 ```bash
+ACCESS_KEY="< Access Key >"
+SECRET_KEY="< Secret Key >"
+BIT_ACCOUNT_NAME="< Bit.com Account Name >"
+CME_ACCOUNT_NAME="< CME Account Name >"
+DERIBIT_ACCOUNT_NAME="< Deribit Account Name >"
+
+
 docker run -it --rm \
-  -e PARADIGM_ACCESS_KEY=<API-Access-Key> \
-  -e PARADIGM_SECRET_KEY=<API-Secret-Key> \
+  -e PARADIGM_ACCESS_KEY="$ACCESS_KEY" \
+  -e PARADIGM_SECRET_KEY="$SECRET_KEY" \
+  -e PARADIGM_ACCOUNT_NAME_BIT="$BIT_ACCOUNT_NAME" \
+  -e PARADIGM_ACCOUNT_NAME_CME="$CME_ACCOUNT_NAME" \
+  -e PARADIGM_ACCOUNT_NAME_DBT="$DERIBIT_ACCOUNT_NAME" \
   market_maker
 ```
-_Note_: Replace `<API-Access-Key>` and `<API-Secret-Key>` with your keys.
+_Note_: Edit the first few lines with your API credentials and the account names
+from your desk's admin dashboard for any venues you want enabled.
 
-### market_taker
+### [market_taker](market_taker/)
 
 The `market_taker` tool is designed to automatically accept quotes via the
 Paradigm API. The tool will automatically execute the quote with the best price
@@ -141,9 +161,12 @@ To subsequently run the built image, type the following command into your
 terminal:
 
 ```bash
+ACCESS_KEY="< Access Key >"
+SECRET_KEY="< Secret Key >"
+
 docker run -it --rm \
-  -e PARADIGM_ACCESS_KEY=<API-Access-Key> \
-  -e PARADIGM_SECRET_KEY=<API-Secret-Key> \
+  -e PARADIGM_ACCESS_KEY="$ACCESS_KEY" \
+  -e PARADIGM_SECRET_KEY="$SECRET_KEY" \
   market_taker
 ```
-_Note_: Replace `<API-Access-Key>` and `<API-Secret-Key>` with your keys.
+_Note_: Edit the first couple lines with your API credentials.

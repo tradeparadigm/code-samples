@@ -1,6 +1,6 @@
 """
-Paradigm asynchronous websocket application which will automatically respond
-with random prices from the exchange's instrument's mark price. You are the MM.
+Paradigm asynchronous websocket application to automatically respond with
+random prices from the exchange's instrument's mark price. You are the maker.
 
 Usage:
     python3 market_maker.py [ACCESS KEY] [ACCESS SECRET]
@@ -11,7 +11,6 @@ Environment Variables:
     PARADIGM_ACCOUNT_NAME_DBT: Paradigm Account Name - DBT
     PARADIGM_ACCOUNT_NAME_BIT: Paradigm Account Name - BIT
     PARADIGM_ACCOUNT_NAME_CME: Paradigm Account Name - CME
-    PARADIGM_DESK_NAME:        Paradigm Desk Name
     DBT_HTTP_HOST:             HTTP Host - DBT
     BIT_HTTP_HOST:             HTTP Host - BIT
     PARADIGM_WS_URL:           Paradigm WS URL
@@ -132,7 +131,7 @@ def construct_rfq_quote_data(rfq_details, min_tick_size, dbt_http_host,
     """
     Create Quote payload.
     """
-    client_order_id = f'{account_information["desk"]}{randint(1, 1000000000)}'
+    client_order_id = f'{randint(1, 1000000000)}'
     quote_legs = []
     for leg in rfq_details['legs']:
         quote_leg = {}
@@ -319,21 +318,9 @@ if __name__ == '__main__':
     PARADIGM_SECRET_KEY = os.getenv(
         'PARADIGM_SECRET_KEY', PARADIGM_SECRET_KEY,
     )
-    PARADIGM_ACCOUNT_NAME_DBT = os.getenv(
-        'PARADIGM_ACCOUNT_NAME_DBT', 'ParadigmTestOne',
-    )
-    PARADIGM_ACCOUNT_NAME_BIT = os.getenv(
-        'PARADIGM_ACCOUNT_NAME_BIT', 'ParadigmTestOne',
-    )
-    PARADIGM_ACCOUNT_NAME_CME = os.getenv(
-        'PARADIGM_ACCOUNT_NAME_CME', 'ParadigmTestOne',
-    )
-    PARADIGM_DESK_NAME = os.getenv(
-        'PARADIGM_DESK_NAME', 'DSK1',
-    )
-    MAKER_DESK_NAME = os.getenv(
-        'MAKER_DESK_NAME', 'DSK2',
-    )
+    PARADIGM_ACCOUNT_NAME_DBT = os.getenv('PARADIGM_ACCOUNT_NAME_DBT')
+    PARADIGM_ACCOUNT_NAME_BIT = os.getenv('PARADIGM_ACCOUNT_NAME_BIT')
+    PARADIGM_ACCOUNT_NAME_CME = os.getenv('PARADIGM_ACCOUNT_NAME_CME')
 
     DBT_HTTP_HOST = os.getenv(
         'DBT_HTTP_HOST', 'https://test.deribit.com/api/v2',
@@ -345,7 +332,6 @@ if __name__ == '__main__':
     PARADIGM_HTTP_HOST = os.getenv('PARADIGM_HTTP_HOST', 'https://api.test.paradigm.co')
 
     paradigm_account_information = {
-        'desk': PARADIGM_DESK_NAME,
         'name': {
             'DBT': PARADIGM_ACCOUNT_NAME_DBT,
             'BIT': PARADIGM_ACCOUNT_NAME_BIT,
@@ -367,8 +353,6 @@ if __name__ == '__main__':
         print(f'Paradigm Account Name - DBT: {PARADIGM_ACCOUNT_NAME_DBT}')
         print(f'Paradigm Account Name - BIT: {PARADIGM_ACCOUNT_NAME_BIT}')
         print(f'Paradigm Account Name - CME: {PARADIGM_ACCOUNT_NAME_CME}')
-        print(f'Paradigm Desk Name: {PARADIGM_DESK_NAME}')
-        print(f'Maker Desk Name: {MAKER_DESK_NAME}')
         print(f'HTTP Host - DBT: {DBT_HTTP_HOST}')
         print(f'HTTP Host - BIT: {BIT_HTTP_HOST}')
         print(f'Paradigm WS URL: {PARADIGM_WS_URL}')
