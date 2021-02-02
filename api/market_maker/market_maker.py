@@ -35,6 +35,8 @@ from urllib.parse import urljoin
 import requests
 import websockets
 
+BUY = 'BUY'
+SELL = 'SELL'
 
 try:
     PARADIGM_ACCESS_KEY = sys.argv[1]
@@ -77,23 +79,26 @@ async def main(access_key, secret_key, paradigm_account_information,
                             # Do not offer a Quote if the venue is CME
                             if rfq_details['legs'][0]['venue'] == 'CME':
                                 continue
-                            # Respond with a Quote to every RFQ
-                            response = await quote_rfq(rfq_details, min_tick_size,
-                                                       dbt_http_host, bit_http_host,
-                                                       access_key, secret_key,
-                                                       paradigm_http_host,
-                                                       paradigm_account_information)
-                            if response.status_code == 200:
-                                response_json = json.loads(response.text)
-                                print('Successfully Quoted')
-                                print('RFQ_ID: {}'.format(response_json['rfq_id']))
-                                print('QUOTE_ID: {}'.format(response_json['quote_id']))
+                            # Respond with a buy and a sell Quote to every RFQ
+                            for side in [BUY, SELL]:
+                                response = await quote_rfq(rfq_details, min_tick_size,
+                                                           dbt_http_host, bit_http_host,
+                                                           access_key, secret_key,
+                                                           paradigm_http_host,
+                                                           paradigm_account_information,
+                                                           side)
+                                if response.status_code == 200:
+                                    response_json = json.loads(response.text)
+                                    print('Successfully Quoted')
+                                    print(f"response_json: {type(response_json)}, {response_json}")
+                                    print('RFQ_ID: {}'.format(response_json['rfq_id']))
+                                    print('QUOTE_ID: {}'.format(response_json['quote_id']))
 
 
 # Quote Create Functions
 async def quote_rfq(rfq_details, min_tick_size, dbt_http_host, bit_http_host,
                     access_key, secret_key, paradigm_http_host,
-                    account_information):
+                    account_information, side):
     """
     Call the construct quote function as well
     as create the required HTTP signature.
@@ -103,7 +108,7 @@ async def quote_rfq(rfq_details, min_tick_size, dbt_http_host, bit_http_host,
     path = '/quote/create/'
 
     data = construct_rfq_quote_data(rfq_details, min_tick_size, dbt_http_host,
-                                    bit_http_host, account_information)
+                                    bit_http_host, account_information, side)
     body = json.dumps(data).encode('utf-8')
 
     message = method.encode('utf-8') + b'\n'
@@ -127,7 +132,7 @@ async def quote_rfq(rfq_details, min_tick_size, dbt_http_host, bit_http_host,
 
 
 def construct_rfq_quote_data(rfq_details, min_tick_size, dbt_http_host,
-                             bit_http_host, account_information):
+                             bit_http_host, account_information, side):
     """
     Create Quote payload.
     """
@@ -139,16 +144,16 @@ def construct_rfq_quote_data(rfq_details, min_tick_size, dbt_http_host,
         quote_leg['instrument'] = leg['instrument']
         quote_leg['side'] = leg['side']
         quote_leg['venue'] = venue
-        quote_leg['bid_quantity'] = leg['quantity']
-        quote_leg['offer_quantity'] = leg['quantity']
+        quote_leg['quantity'] = leg['quantity']
         if 'price' in leg:
-            quote_leg['bid_price'] = leg['price']
-            quote_leg['offer_price'] = leg['price']
+            quote_leg['price'] = leg['price']
         else:
             mark = get_mark_price(venue, leg['instrument'], dbt_http_host, bit_http_host)
             bid, offer = get_bid_and_ask_price(venue, leg['instrument'], mark, min_tick_size)
-            quote_leg['bid_price'] = bid
-            quote_leg['offer_price'] = offer
+            if side == BUY:
+                quote_leg['price'] = offer
+            else:
+                quote_leg['price'] = bid
         quote_legs.append(quote_leg)
 
     data = {
@@ -158,7 +163,8 @@ def construct_rfq_quote_data(rfq_details, min_tick_size, dbt_http_host,
         'client_order_id': client_order_id,
         'expires_in': randint(60, 120),
         'legs': quote_legs,
-        'rfq_id': rfq_details['rfq_id']
+        'rfq_id': rfq_details['rfq_id'],
+        'side': side,
     }
     return data
 

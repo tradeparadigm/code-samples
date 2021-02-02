@@ -95,24 +95,28 @@ async def main(access_key, secret_key, paradigm_ws_url, dbt_http_host,
                         rfq_id = quote_details['rfq_id']
 
                         # Append quotes to RFQ Dict to help aggregate quotes
+                        # print(f"rfqs_dict: {type(rfqs_dict)}, {rfqs_dict}")
+
                         if quote_id not in rfqs_dict[rfq_id].keys():
                             rfqs_dict[rfq_id][quote_id] = {
                                 'desk': quote_details['desk'],
                                 'valid_until': quote_details['valid_until'],
                                 'status': quote_details['status'],
                             }
+
+                            # print(f"quote_details: {type(quote_details)}, {quote_details}")
+
                             for leg in range(0, len(quote_details['legs'])):
                                 instrument = quote_details['legs'][leg]['instrument']
                                 if instrument not in rfqs_dict[rfq_id][quote_id].keys():
+
+                                    # print(f"quote_details: {type(quote_details)}, {quote_details}")
+
                                     rfqs_dict[rfq_id][quote_id][instrument] = {
                                         'side': quote_details['legs'][leg]['side'],
                                         'venue': quote_details['legs'][leg]['venue'],
-                                        'bid_price': quote_details['legs'][leg]['bid_price'],
-                                        'offer_price': quote_details['legs'][leg]['offer_price'],
-                                        'bid_quantity': quote_details['legs'][leg]['bid_quantity'],
-                                        'offer_quantity': (
-                                            quote_details['legs'][leg]['offer_quantity']
-                                        ),
+                                        'price': quote_details['legs'][leg]['price'],
+                                        'quantity': quote_details['legs'][leg]['quantity'],
                                     }
 
                     if message['params']['channel'] == 'trade_confirmation':
@@ -195,7 +199,6 @@ def quote_aggregator(rfqs_dict, rfq_id):
 
                 if 'bid_price' not in _best_quote[rfq_id][instrument].keys():
                     _best_quote[rfq_id][instrument]['bid_price'] = 0
-                    _best_quote[rfq_id][instrument]['bid_price'] = 0
                     _best_quote[rfq_id][instrument]['bid_quantity'] = 0
                     _best_quote[rfq_id][instrument]['sell_quote_id'] = 0
                     _best_quote[rfq_id][instrument]['sell_desk'] = ''
@@ -203,7 +206,6 @@ def quote_aggregator(rfqs_dict, rfq_id):
                     pass
 
                 if 'offer_price' not in _best_quote[rfq_id][instrument].keys():
-                    _best_quote[rfq_id][instrument]['offer_price'] = 0
                     _best_quote[rfq_id][instrument]['offer_price'] = 0
                     _best_quote[rfq_id][instrument]['offer_quantity'] = 0
                     _best_quote[rfq_id][instrument]['buy_quote_id'] = 0
