@@ -16,9 +16,9 @@ COPY requirements.txt /
 
 RUN pip install -r /requirements.txt
 
-COPY market-maker.py /
+COPY market_maker.py /
 
-CMD ["sh", "-c", "python /market-maker.py $PARADIGM_ACCESS_KEY \
+CMD ["sh", "-c", "python /market_maker.py $PARADIGM_ACCESS_KEY \
                                           $PARADIGM_SECRET_KEY \
                                           $PARADIGM_ACCOUNT_NAME_DBT \
                                           $PARADIGM_ACCOUNT_NAME_BIT \
