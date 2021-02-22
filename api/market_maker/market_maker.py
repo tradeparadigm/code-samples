@@ -3,26 +3,28 @@ Paradigm asynchronous websocket application which will automatically respond
 with random prices from the exchange's instrument's mark price. You are the MM.
 
 Usage:
-    python3 market-maker.py
+    python3 market-maker.py [PARADIGM_ACCESS_KEY] [PARADIGM_SECRET_KEY]
+                            [PARADIGM_ACCOUNT_NAME_DBT]
+                            [PARADIGM_ACCOUNT_NAME_BIT]
+                            [PARADIGM_ACCOUNT_NAME_CME]
+                            [PARADIGM_DESK_NAME]
 
 Environment Variables:
-    Paradigm Access Key
-    Paradigm Sceret Key
-    Paradigm Account Name - DBT
-    Paradigm Account Name - BIT
-    Paradigm Account Name - CME
-    Paradigm Desk Name
-    HTTP Host - DBT
-    HTTP Host - BIT
-    Paradigm WS URL
-    Paradigm HTTP Host
+    PARADIGM_ACCESS_KEY:       Paradigm Access Key
+    PARADIGM_SECRET_KEY:       Paradigm Sceret Key
+    PARADIGM_ACCOUNT_NAME_DBT: Paradigm Account Name - DBT
+    PARADIGM_ACCOUNT_NAME_BIT: Paradigm Account Name - BIT
+    PARADIGM_ACCOUNT_NAME_CME: Paradigm Account Name - CME
+    PARADIGM_DESK_NAME:        Paradigm Desk Name
+    DBT_HTTP_HOST:             HTTP Host - DBT
+    BIT_HTTP_HOST:             HTTP Host - BIT
+    PARADIGM_WS_URL:           Paradigm WS URL
+    PARADIGM_HTTP_HOST:        Paradigm HTTP Host
 
 Requirements:
-    pip3 install websockets
-    pip3 install requests
+    pip3 install requests websockets
 """
 
-# built ins
 import os
 import sys
 import json
@@ -37,10 +39,23 @@ import decimal
 import traceback
 import argparse
 
-# installed
 import websockets
 import requests
 
+try:
+    PARADIGM_ACCESS_KEY = sys.argv[1]
+    PARADIGM_SECRET_KEY = sys.argv[2]
+    PARADIGM_ACCOUNT_NAME_DBT = sys.argv[3]
+    PARADIGM_ACCOUNT_NAME_BIT = sys.argv[4]
+    PARADIGM_ACCOUNT_NAME_CME = sys.argv[5]
+    PARADIGM_DESK_NAME = sys.argv[6]
+except IndexError:
+    PARADIGM_ACCESS_KEY = None
+    PARADIGM_SECRET_KEY = None
+    PARADIGM_ACCOUNT_NAME_DBT = None
+    PARADIGM_ACCOUNT_NAME_BIT = None
+    PARADIGM_ACCOUNT_NAME_CME = None
+    PARADIGM_DESK_NAME = None
 
 # Main Function
 async def main(access_key, secret_key, paradigm_account_information,
@@ -192,13 +207,6 @@ def construct_rfq_quote_data(rfq_details, min_tick_size,
             # print(f"> mark_price:{mark}, bid_price:{bid}, offer_price:{offer}")
             # print(f"> min_buy:{min_buy}, min_sell:{min_sell}")
 
-            # print('Instrument Name: {}'.format(leg['instrument']))
-            # print(f'Min Buy: {min_buy}')
-            # print(f'Min Sell: {min_sell}')
-            # print(f'Mark Price: {mark}')
-            # print(f'Bid: {bid}')
-            # print(f'Offer: {offer}')
-
             if side == 'BUY':
                 _price = bid if leg['side'] == 'BUY' else offer
             else:
@@ -217,8 +225,6 @@ def construct_rfq_quote_data(rfq_details, min_tick_size,
                 instrument = leg['instrument']
                 quote_side = 'BUY' if side == 'BUY' else 'SELL'
                 leg_side = 'BUY' if leg['side'] == 'BUY' else 'SELL'
-                # print(f'Quote Side: {quote_side}')
-                # print(f'Leg Side: {leg_side}')
 
                 if instrument[-1:] not in ['C', 'P']:
                     instrument_type = 'FUTURE'
@@ -228,13 +234,11 @@ def construct_rfq_quote_data(rfq_details, min_tick_size,
                 if quote_side == 'SELL' and leg_side == 'SELL':
                     if bool(_price >= min_sell) is False:
                         quote_leg['price'] = min_sell-5
-                        # print(f'Second Decided Price: {min_sell-5}')
 
                 if instrument_type == 'FUTURE':
                     if quote_side == 'SELL' and leg_side == 'BUY':
                         if bool(offer < mark) is False:
                             quote_leg['price'] = mark-50
-                            # print(f'Second Decided Price: {mark}')
 
 
                 if rfq_id not in previous_quotes_dict.keys():
@@ -246,16 +250,12 @@ def construct_rfq_quote_data(rfq_details, min_tick_size,
 
                 if 'SELL' in previous_quotes_dict[rfq_id][instrument].keys():
                     if side == 'BUY':
-                        print('influenced1')
                         if quote_leg['price'] < previous_quotes_dict[rfq_id][instrument]['SELL']:
-                            print('influenced2')
                             quote_leg['price'] = previous_quotes_dict[rfq_id][instrument]['SELL']
 
                 if 'BUY' in previous_quotes_dict[rfq_id][instrument].keys():
                     if side == 'SELL':
-                        print('influenced3')
                         if quote_leg['price'] > previous_quotes_dict[rfq_id][instrument]['BUY']:
-                            print('influenced4')
                             quote_leg['price'] = previous_quotes_dict[rfq_id][instrument]['BUY']
 
             # If Mark prices are too low
@@ -271,19 +271,6 @@ def construct_rfq_quote_data(rfq_details, min_tick_size,
                         quote_leg['price'] = round(float(min_buy)+0.0001, 4)
                     elif venue == "BIT":
                         quote_leg['price'] = round(float(min_sell)+0.0001, 4)
-
-            # Storing previous prices for two-way quotes, need to add a way to check previous bid/ask
-            # and make sure the next quote is equal in value if it's the ask, bid > ask
-            # if rfq_details['rfq_id'] not in previous_quotes_dict.keys():
-            #     previous_quotes_dict[rfq_details['rfq_id']] = {}
-            # elif rfq_details['rfq_id'] in previous_quotes_dict.keys():
-            #     pass
-            # if leg['instrument'] not in previous_quotes_dict[rfq_details['rfq_id']].keys():
-            #     previous_quotes_dict[rfq_details['rfq_id']][leg['instrument']] = [side, quote_leg['price']]
-            # elif leg['instrument'] in previous_quotes_dict[rfq_details['rfq_id']].keys():
-            #     quote_leg['price'] = quote_leg['price'] if previous_quotes_dict[rfq_details['rfq_id']][leg['instrument']][0] == 'BUY' and _price > previous_quotes_dict[rfq_details['rfq_id']][leg['instrument']][1] else quote_leg['price']
-
-            # print('Quote Price: {}'.format(quote_leg['price']))
 
         quote_legs.append(quote_leg)
 
@@ -462,88 +449,40 @@ async def subscribe_tradeconfirmation_notifcation(websocket):
 
 
 if __name__ == "__main__":
-    # Arguments for Bash Script
-    my_parser = argparse.ArgumentParser()
+    PARADIGM_ACCESS_KEY = os.getenv(
+        'PARADIGM_ACCESS_KEY', PARADIGM_ACCESS_KEY,
+    )
+    PARADIGM_SECRET_KEY = os.getenv(
+        'PARADIGM_SECRET_KEY', PARADIGM_SECRET_KEY,
+    )
+    PARADIGM_ACCOUNT_NAME_DBT = os.getenv(
+        'PARADIGM_ACCOUNT_NAME_DBT', PARADIGM_ACCOUNT_NAME_DBT,
+    )
+    PARADIGM_ACCOUNT_NAME_BIT = os.getenv(
+        'PARADIGM_ACCOUNT_NAME_BIT', PARADIGM_ACCOUNT_NAME_BIT,
+    )
+    PARADIGM_ACCOUNT_NAME_CME = os.getenv(
+        'PARADIGM_ACCOUNT_NAME_CME', PARADIGM_ACCOUNT_NAME_CME,
+    )
+    PARADIGM_DESK_NAME = os.getenv(
+        'PARADIGM_DESK_NAME', PARADIGM_DESK_NAME,
+    )
 
-    my_parser.add_argument('PARADIGM_ACCESS_KEY',
-                       metavar='paradigm_access_key',
-                       type=str,
-                       help='',
-                       default='',
-                       nargs='?')
-    my_parser.add_argument('PARADIGM_SECRET_KEY',
-                       metavar='paradigm_secret_key',
-                       type=str,
-                       help='',
-                       default='',
-                       nargs='?')
-    my_parser.add_argument('PARADIGM_ACCOUNT_NAME_DBT',
-                       metavar='paradigm_account_name_dbt',
-                       type=str,
-                       help='',
-                       default='',
-                       nargs='?')
-    my_parser.add_argument('PARADIGM_ACCOUNT_NAME_BIT',
-                       metavar='paradigm_account_name_bit',
-                       type=str,
-                       help='',
-                       default='',
-                       nargs='?')
-    my_parser.add_argument('PARADIGM_ACCOUNT_NAME_CME',
-                       metavar='paradigm_account_name_cme',
-                       type=str,
-                       help='',
-                       default='',
-                       nargs='?')
-    my_parser.add_argument('PARADIGM_DESK_NAME',
-                       metavar='paradigm_desk_name',
-                       type=str,
-                       help='',
-                       default='',
-                       nargs='?')
-    my_parser.add_argument('PARADIGM_WS_URL',
-                       metavar='paradigm_ws_url',
-                       type=str,
-                       help='',
-                       default='',
-                       nargs='?')
-    my_parser.add_argument('PARADIGM_HTTP_HOST',
-                       metavar='paradigm_http_host',
-                       type=str,
-                       help='',
-                       default='',
-                       nargs='?')
-
-    # args = my_parser.parse_args()
-
-    # PARADIGM_ACCESS_KEY = args.PARADIGM_ACCESS_KEY
-    # PARADIGM_SECRET_KEY = args.PARADIGM_SECRET_KEY
-    # PARADIGM_ACCOUNT_NAME_DBT = args.PARADIGM_ACCOUNT_NAME_DBT
-    # PARADIGM_ACCOUNT_NAME_BIT = args.PARADIGM_ACCOUNT_NAME_BIT
-    # PARADIGM_ACCOUNT_NAME_CME = args.PARADIGM_ACCOUNT_NAME_CME
-    # PARADIGM_DESK_NAME = args.PARADIGM_DESK_NAME
-    # PARADIGM_WS_URL = args.PARADIGM_WS_URL
-    # PARADIGM_HTTP_HOST = args.PARADIGM_HTTP_HOST
-
-    # Local Testing
-    # os.environ['PARADIGM_ACCESS_KEY'] = 'vbgCJyYDVXCYodnT80amJPSz'
-    # os.environ['PARADIGM_SECRET_KEY'] = 'G78OeQUoOrCcOYI4HW9N+0vJUFlDusR5ZX4DLJIQFrYfd/YZ'
-    # os.environ['PARADIGM_ACCOUNT_NAME_DBT'] = "ParadigmTestNinety"
-    # os.environ['PARADIGM_ACCOUNT_NAME_BIT'] = "ParadigmTestNinety"
-    # os.environ['PARADIGM_ACCOUNT_NAME_CME'] = "ParadigmTestNinety"
-    # os.environ['PARADIGM_DESK_NAME'] = "DSK90"
-
-    # os.environ['DBT_HTTP_HOST'] = "https://test.deribit.com/api/v2"
-    # os.environ['BIT_HTTP_HOST'] = "https://testapi.bitexch.dev/v1"
-    # os.environ['PARADIGM_WS_URL'] = 'wss://ws.api.test.paradigm.co/'
-    # os.environ['PARADIGM_HTTP_HOST'] = 'https://api.test.paradigm.co/'
+    DBT_HTTP_HOST = os.getenv(
+        'DBT_HTTP_HOST', 'https://test.deribit.com/api/v2',
+    )
+    BIT_HTTP_HOST = os.getenv(
+        'BIT_HTTP_HOST', 'https://testapi.bitexch.dev/v1',
+    )
+    PARADIGM_WS_URL = os.getenv('PARADIGM_WS_URL', 'wss://ws.api.test.paradigm.co/')
+    PARADIGM_HTTP_HOST = os.getenv('PARADIGM_HTTP_HOST', 'https://api.test.paradigm.co')
 
     paradigm_account_information = {
-                                    "desk": os.environ['PARADIGM_DESK_NAME'],
+                                    "desk": PARADIGM_DESK_NAME,
                                     "name": {
-                                        "DBT": os.environ['PARADIGM_ACCOUNT_NAME_DBT'],
-                                        "BIT": os.environ['PARADIGM_ACCOUNT_NAME_BIT'],
-                                        "CME": os.environ['PARADIGM_ACCOUNT_NAME_CME']
+                                        "DBT": PARADIGM_ACCOUNT_NAME_DBT,
+                                        "BIT": PARADIGM_ACCOUNT_NAME_BIT,
+                                        "CME": PARADIGM_ACCOUNT_NAME_CME
                                     }}
 
     # Minimum Tick Size
@@ -554,33 +493,35 @@ if __name__ == "__main__":
                     }
 
     try:
-        print('Paradigm Access Key: {}'.format(os.environ['PARADIGM_ACCESS_KEY']))
-        print('Paradigm Sceret Key: {}'.format(os.environ['PARADIGM_SECRET_KEY']))
-        print('Paradigm Account Name - DBT: {}'.format(os.environ['PARADIGM_ACCOUNT_NAME_DBT']))
-        print('Paradigm Account Name - BIT: {}'.format(os.environ['PARADIGM_ACCOUNT_NAME_BIT']))
-        print('Paradigm Account Name - CME: {}'.format(os.environ['PARADIGM_ACCOUNT_NAME_CME']))
-        print('Paradigm Desk Name: {}'.format(os.environ['PARADIGM_DESK_NAME']))
-        print('HTTP Host - DBT: {}'.format(os.environ['DBT_HTTP_HOST']))
-        print('HTTP Host - BIT: {}'.format(os.environ['BIT_HTTP_HOST']))
-        print('Paradigm WS URL: {}'.format(os.environ['PARADIGM_WS_URL']))
-        print('Paradigm HTTP Host: {}'.format(os.environ['PARADIGM_HTTP_HOST']))
+        print('Paradigm Access Key: {}'.format(PARADIGM_ACCESS_KEY))
+        print('Paradigm Sceret Key: {}'.format(PARADIGM_SECRET_KEY))
+        print('Paradigm Account Name - DBT: {}'.format(PARADIGM_ACCOUNT_NAME_DBT))
+        print('Paradigm Account Name - BIT: {}'.format(PARADIGM_ACCOUNT_NAME_BIT))
+        print('Paradigm Account Name - CME: {}'.format(PARADIGM_ACCOUNT_NAME_CME))
+        print('Paradigm Desk Name: {}'.format(PARADIGM_DESK_NAME))
+        print('HTTP Host - DBT: {}'.format(DBT_HTTP_HOST))
+        print('HTTP Host - BIT: {}'.format(BIT_HTTP_HOST))
+        print('Paradigm WS URL: {}'.format(PARADIGM_WS_URL))
+        print('Paradigm HTTP Host: {}'.format(PARADIGM_HTTP_HOST))
 
         # Start the client
-        asyncio.get_event_loop().run_until_complete(main(access_key=os.environ['PARADIGM_ACCESS_KEY'],
-                                                        secret_key=os.environ['PARADIGM_SECRET_KEY'],
-                                                        paradigm_account_information =paradigm_account_information,
-                                                        dbt_http_host=os.environ['DBT_HTTP_HOST'],
-                                                        bit_http_host=os.environ['BIT_HTTP_HOST'],
-                                                        paradigm_ws_url=os.environ['PARADIGM_WS_URL'],
-                                                        paradigm_http_host=os.environ['PARADIGM_HTTP_HOST'],
-                                                        min_tick_size = MIN_TICK_SIZE
-                                                        ))
+        asyncio.get_event_loop().run_until_complete(
+            main(
+                access_key=PARADIGM_ACCESS_KEY,
+                secret_key=PARADIGM_SECRET_KEY,
+                paradigm_account_information=paradigm_account_information,
+                dbt_http_host=DBT_HTTP_HOST,
+                bit_http_host=BIT_HTTP_HOST,
+                paradigm_ws_url=PARADIGM_WS_URL,
+                paradigm_http_host=PARADIGM_HTTP_HOST,
+                min_tick_size=MIN_TICK_SIZE,
+            )
+        )
 
         asyncio.get_event_loop().run_forever()
     except Exception as e:
         print('Local Main Error')
-        print('Desk Name: {}'.format(os.environ['PARADIGM_DESK_NAME']))
-        print('Paradigm Environment: {}'.format(os.environ['PARADIGM_WS_URL']))
+        print('Paradigm Environment: {}'.format(PARADIGM_WS_URL))
         print('Exception: {}'.format(e))
         print('Traceback Full Logs')
         print(traceback.format_exc())
