@@ -1,17 +1,30 @@
-# syntax=docker/dockerfile:1.2
 FROM python:3.8-slim-buster
 
-ENV PARADIGM_ACCESS_KEY=""
-ENV PARADIGM_SECRET_KEY=""
-ENV PARADIGM_ACCOUNT_NAME_BIT=""
-ENV PARADIGM_ACCOUNT_NAME_CME=""
-ENV PARADIGM_ACCOUNT_NAME_DBT=""
+ENV PYTHONUNBUFFERED=1
+ENV PARADIGM_ACCESS_KEY="2IHUpZXP8LqVYsokGRKAV4JS"
+ENV PARADIGM_SECRET_KEY="CxIm0jGeJXrxnWIcDm8oDSNz+GrOJVxeKISuMdPkMumtHxVf"
+ENV PARADIGM_ACCOUNT_NAME_DBT="ParadigmTestNinetyFive"
+ENV PARADIGM_ACCOUNT_NAME_BIT="ParadigmTestNinetyFive"
+ENV PARADIGM_ACCOUNT_NAME_CME="ParadigmTestNinetyFive"
+ENV PARADIGM_DESK_NAME="DSK95"
+ENV DBT_HTTP_HOST="https://test.deribit.com/api/v2"
+ENV BIT_HTTP_HOST="https://testapi.bitexch.dev/v1"
+ENV PARADIGM_WS_URL="wss://ws.api.test.paradigm.co/"
+ENV PARADIGM_HTTP_HOST="https://api.test.paradigm.co"
 
-# Install requirements
 COPY requirements.txt /
+
 RUN pip install -r /requirements.txt
 
-# Copy Source
-COPY market_maker.py /
+COPY market-maker.py /
 
-CMD ["python", "/market_maker.py"]
+CMD ["sh", "-c", "python /market-maker.py $PARADIGM_ACCESS_KEY \
+                                          $PARADIGM_SECRET_KEY \
+                                          $PARADIGM_ACCOUNT_NAME_DBT \
+                                          $PARADIGM_ACCOUNT_NAME_BIT \
+                                          $PARADIGM_ACCOUNT_NAME_CME \
+                                          $PARADIGM_DESK_NAME \
+                                          $DBT_HTTP_HOST \
+                                          $BIT_HTTP_HOST \
+                                          $PARADIGM_WS_URL \
+                                          $PARADIGM_HTTP_HOST"]
