@@ -253,28 +253,28 @@ def construct_rfq_quote_data(rfq_details, min_tick_size,
             # If Mark prices are too low
             if side == 'BUY':
                 if quote_leg['price'] <= 0.0002:
-                    if venue == "DBT":
+                    if venue == 'DBT':
                         quote_leg['price'] = round(float(min_buy)+0.0001, 4)
-                    elif venue == "BIT":
+                    elif venue == 'BIT':
                         quote_leg['price'] = round(float(min_sell)+0.0001, 4)
             elif side == 'SELL':
                 if quote_leg['price'] <= 0.0002:
-                    if venue == "DBT":
+                    if venue == 'DBT':
                         quote_leg['price'] = round(float(min_buy)+0.0001, 4)
-                    elif venue == "BIT":
+                    elif venue == 'BIT':
                         quote_leg['price'] = round(float(min_sell)+0.0001, 4)
 
         quote_legs.append(quote_leg)
 
     data = {
-        "account": {
-            "name": paradigm_account_information['name'][venue]
+        'account': {
+            'name': paradigm_account_information['name'][venue]
         },
-        "client_order_id": client_order_id,
-        "expires_in": randint(60, 120),
-        "legs": quote_legs,
-        "rfq_id": rfq_details['rfq_id'],
-        "side": side
+        'client_order_id': client_order_id,
+        'expires_in': randint(60, 120),
+        'legs': quote_legs,
+        'rfq_id': rfq_details['rfq_id'],
+        'side': side
     }
     return data
 
@@ -370,9 +370,9 @@ async def send_heartbeat(websocket):
     """
     while True:
         await websocket.send(json.dumps({
-            "id": 1,
-            "jsonrpc": "2.0",
-            "method": "heartbeat"
+            'id': 1,
+            'jsonrpc': '2.0',
+            'method': 'heartbeat'
         }))
         await asyncio.sleep(1)
 
@@ -384,11 +384,11 @@ async def subscribe_rfq_notification(websocket):
     """
     print('> Subscribed to RFQ Channel')
     await websocket.send(json.dumps({
-        "id": 2,
-        "jsonrpc": "2.0",
-        "method": "subscribe",
-        "params": {
-            "channel": "rfq"
+        'id': 2,
+        'jsonrpc': '2.0',
+        'method': 'subscribe',
+        'params': {
+            'channel': 'rfq'
         }
     }))
 
@@ -399,11 +399,11 @@ async def subscribe_quote_notifcation(websocket):
     """
     print('> Subscribed to Quote Channel')
     await websocket.send(json.dumps({
-        "id": 3,
-        "jsonrpc": "2.0",
-        "method": "subscribe",
-        "params": {
-            "channel": "quote"
+        'id': 3,
+        'jsonrpc': '2.0',
+        'method': 'subscribe',
+        'params': {
+            'channel': 'quote'
         }
     }))
 
@@ -414,11 +414,11 @@ async def subscribe_trade_notifcation(websocket):
     """
     print('> Subscribed to Trade Channel')
     await websocket.send(json.dumps({
-        "id": 4,
-        "jsonrpc": "2.0",
-        "method": "subscribe",
-        "params": {
-            "channel": "trade"
+        'id': 4,
+        'jsonrpc': '2.0',
+        'method': 'subscribe',
+        'params': {
+            'channel': 'trade'
         }
     }))
 
@@ -429,16 +429,16 @@ async def subscribe_tradeconfirmation_notifcation(websocket):
     """
     print('> Subscribed to Trade Confirmation Channel')
     await websocket.send(json.dumps({
-        "id": 5,
-        "jsonrpc": "2.0",
-        "method": "subscribe",
-        "params": {
-            "channel": "trade_confirmation"
+        'id': 5,
+        'jsonrpc': '2.0',
+        'method': 'subscribe',
+        'params': {
+            'channel': 'trade_confirmation'
         }
     }))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     PARADIGM_ACCESS_KEY = os.getenv(
         'PARADIGM_ACCESS_KEY', PARADIGM_ACCESS_KEY,
     )
@@ -467,11 +467,11 @@ if __name__ == "__main__":
     PARADIGM_WS_URL = os.getenv('PARADIGM_WS_URL', 'wss://ws.api.test.paradigm.co/')
     PARADIGM_HTTP_HOST = os.getenv('PARADIGM_HTTP_HOST', 'https://api.test.paradigm.co')
 
-    paradigm_account_information = {"desk": PARADIGM_DESK_NAME,
-                                    "name": {
-                                             "DBT": PARADIGM_ACCOUNT_NAME_DBT,
-                                             "BIT": PARADIGM_ACCOUNT_NAME_BIT,
-                                             "CME": PARADIGM_ACCOUNT_NAME_CME
+    paradigm_account_information = {'desk': PARADIGM_DESK_NAME,
+                                    'name': {
+                                             'DBT': PARADIGM_ACCOUNT_NAME_DBT,
+                                             'BIT': PARADIGM_ACCOUNT_NAME_BIT,
+                                             'CME': PARADIGM_ACCOUNT_NAME_CME
                                             }
                                     }
 
