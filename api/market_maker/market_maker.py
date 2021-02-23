@@ -344,7 +344,7 @@ def get_bid_and_ask_price(venue, instrument, mark_price, min_tick_size):
 
 
 def get_min_tick_size(venue, instrument, min_tick_size):
-    """ Get minimum quote tick size for the instrument"""
+    """Get minimum quote tick size for the instrument"""
     asset = instrument.split('-')[0]
     inst_type = 'OPTION' if (instrument[-1] == 'C' or instrument[-1] == 'P') else 'FUTURE'
     return min_tick_size[venue][asset][inst_type]
@@ -467,32 +467,37 @@ if __name__ == '__main__':
     PARADIGM_WS_URL = os.getenv('PARADIGM_WS_URL', 'wss://ws.api.test.paradigm.co/')
     PARADIGM_HTTP_HOST = os.getenv('PARADIGM_HTTP_HOST', 'https://api.test.paradigm.co')
 
-    paradigm_account_information = {'desk': PARADIGM_DESK_NAME,
-                                    'name': {
-                                             'DBT': PARADIGM_ACCOUNT_NAME_DBT,
-                                             'BIT': PARADIGM_ACCOUNT_NAME_BIT,
-                                             'CME': PARADIGM_ACCOUNT_NAME_CME
-                                            }
-                                    }
+    paradigm_account_information = {
+        'desk': PARADIGM_DESK_NAME,
+        'name': {
+            'DBT': PARADIGM_ACCOUNT_NAME_DBT,
+            'BIT': PARADIGM_ACCOUNT_NAME_BIT,
+            'CME': PARADIGM_ACCOUNT_NAME_CME
+        }
+    }
 
     # Minimum Tick Size
-    MIN_TICK_SIZE = {'DBT': {'BTC': {'OPTION': 0.0001, 'FUTURE': 0.01},
-                             'ETH': {'OPTION': 0.0001, 'FUTURE': 0.01}},
-                     'BIT': {'BTC': {'OPTION': 0.0001, 'FUTURE': 0.5},
-                             'ETH': {'OPTION': 0.0005, 'FUTURE': 0.05}}
-                    }
+    MIN_TICK_SIZE = {
+        'DBT': {
+            'BTC': {'OPTION': 0.0001, 'FUTURE': 0.01},
+            'ETH': {'OPTION': 0.0001, 'FUTURE': 0.01}},
+        'BIT': {
+            'BTC': {'OPTION': 0.0001, 'FUTURE': 0.5},
+            'ETH': {'OPTION': 0.0005, 'FUTURE': 0.05}
+        },
+    }
 
     try:
-        print('Paradigm Access Key: {}'.format(PARADIGM_ACCESS_KEY))
-        print('Paradigm Sceret Key: {}'.format(PARADIGM_SECRET_KEY))
-        print('Paradigm Account Name - DBT: {}'.format(PARADIGM_ACCOUNT_NAME_DBT))
-        print('Paradigm Account Name - BIT: {}'.format(PARADIGM_ACCOUNT_NAME_BIT))
-        print('Paradigm Account Name - CME: {}'.format(PARADIGM_ACCOUNT_NAME_CME))
-        print('Paradigm Desk Name: {}'.format(PARADIGM_DESK_NAME))
-        print('HTTP Host - DBT: {}'.format(DBT_HTTP_HOST))
-        print('HTTP Host - BIT: {}'.format(BIT_HTTP_HOST))
-        print('Paradigm WS URL: {}'.format(PARADIGM_WS_URL))
-        print('Paradigm HTTP Host: {}'.format(PARADIGM_HTTP_HOST))
+        print(f'Paradigm Access Key: {PARADIGM_ACCESS_KEY}')
+        print(f'Paradigm Sceret Key: {PARADIGM_SECRET_KEY}')
+        print(f'Paradigm Account Name - DBT: {PARADIGM_ACCOUNT_NAME_DBT}')
+        print(f'Paradigm Account Name - BIT: {PARADIGM_ACCOUNT_NAME_BIT}')
+        print(f'Paradigm Account Name - CME: {PARADIGM_ACCOUNT_NAME_CME}')
+        print(f'Paradigm Desk Name: {PARADIGM_DESK_NAME}')
+        print(f'HTTP Host - DBT: {DBT_HTTP_HOST}')
+        print(f'HTTP Host - BIT: {BIT_HTTP_HOST}')
+        print(f'Paradigm WS URL: {PARADIGM_WS_URL}')
+        print(f'Paradigm HTTP Host: {PARADIGM_HTTP_HOST}')
 
         # Start the client
         asyncio.get_event_loop().run_until_complete(
