@@ -89,13 +89,10 @@ async def main(access_key, secret_key, paradigm_account_information,
                 print('Reconnecting')
                 websocket = await websockets.connect(paradigm_ws_url)
             message = json.loads(message)
-            # print(f'> {message}')
             if 'params' in message:
                 if 'channel' in message['params'].keys():
                     if message['params']['channel'] == 'rfq':
-                        # print('> Incoming RFQ')
                         rfq_details = message['params']['data']
-                        # print(f'> {rfq_details}')
 
                         if message['params']['data']['status'] == 'ACTIVE':
                             # Do not offer a Quote if the venue is CME
@@ -158,7 +155,6 @@ async def quote_rfq(rfq_details, min_tick_size,
     data = construct_rfq_quote_data(rfq_details, min_tick_size,
                                     dbt_http_host, bit_http_host,
                                     side)
-    # print('> Quote/Create Request Data: \n', data)
     body = json.dumps(data).encode('utf-8')
     print('/quote/create/ Body')
     print(body)
@@ -179,8 +175,6 @@ async def quote_rfq(rfq_details, min_tick_size,
     }
 
     response = requests.post(urljoin(paradigm_http_host, path), headers=headers, json=data)
-    # print("> Response Code: ", response.status_code)
-    # print('> Quote/Create Response Data: \n', response.json())
     return response
 
 
@@ -204,8 +198,8 @@ def construct_rfq_quote_data(rfq_details, min_tick_size,
         else:
             mark, min_buy, min_sell = get_mark_price(venue, leg['instrument'], dbt_http_host, bit_http_host)
             bid, offer = get_bid_and_ask_price(venue, leg['instrument'], mark, min_tick_size)
-            # print(f'> mark_price:{mark}, bid_price:{bid}, offer_price:{offer}')
-            # print(f'> min_buy:{min_buy}, min_sell:{min_sell}')
+            print(f'> mark_price:{mark}, bid_price:{bid}, offer_price:{offer}')
+            print(f'> min_buy:{min_buy}, min_sell:{min_sell}')
 
             if side == 'BUY':
                 _price = bid if leg['side'] == 'BUY' else offer
@@ -303,7 +297,6 @@ def get_dbt_mark_price(instrument, http_host):
     """
     uri = http_host + f'/public/ticker?instrument_name={instrument}'
     response = requests.get(url=uri)
-    # result = response.json()['result']
     result = json.loads(response.text)
     result = result['result']
     return result['mark_price'], result['min_price'], result['max_price']
@@ -315,7 +308,6 @@ def get_bit_mark_price(instrument, http_host):
     """
     uri = f'{http_host}/tickers?instrument_id={instrument}'
     response = requests.get(url=uri)
-    # result = response.json()['data']
     result = json.loads(response.text)
     result = result['data']
     return result['mark_price'], result['max_buy'], result['min_sell']
