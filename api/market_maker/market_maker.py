@@ -483,7 +483,8 @@ if __name__ == '__main__':
             'ETH': {'OPTION': 0.0001, 'FUTURE': 0.01}},
         'BIT': {
             'BTC': {'OPTION': 0.0001, 'FUTURE': 0.5},
-            'ETH': {'OPTION': 0.0005, 'FUTURE': 0.05}
+            'ETH': {'OPTION': 0.0005, 'FUTURE': 0.05},
+            'BCH': {'OPTION': 0.0005, 'FUTURE': 0.05}
         },
     }
 
