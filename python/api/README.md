@@ -170,3 +170,20 @@ docker run -it --rm \
   market_taker
 ```
 _Note_: Edit the first couple lines with your API credentials.
+
+
+## GRFQ scripts
+
+### [auto_taker.py](grfq/auto_taker.py)
+
+The `auto_taker.py` script is CLI tool that can be used to run a basic taker flow for grfq.
+
+See the script's help documentation for available arguments.
+
+#### Usage
+
+To run the script, type the following into your terminal:
+
+```bash
+pipenv run ./grfq/auto_taker.py
+```
