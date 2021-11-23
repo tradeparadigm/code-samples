@@ -13,9 +13,9 @@ Run the following commands to setup your environment to run the scripts:
 pipenv install --ignore-pipfile
 ```
 
-## Available scripts
+## DRFQ scripts
 
-### [create_rfq.py](create_rfq.py)
+### [create_rfq.py](drfq/create_rfq.py)
 
 The `create_rfq.py` script is CLI tool tha can be used to create multi-leg RFQs
 using the Paradigm API.
@@ -27,10 +27,10 @@ See the script's help documentation for available arguments.
 To run the script, type the following into your terminal:
 
 ```bash
-pipenv run ./create_rfq.py --help
+pipenv run ./drfq/create_rfq.py --help
 ```
 
-### [ws_connect.py](ws_connect.py)
+### [ws_connect.py](drfq/ws_connect.py)
 
 The `ws_connect.py` script is CLI tool tha can be used to connect to the
 Paradigm API Websocket interface. It will print all messages received and sends
@@ -43,10 +43,10 @@ See the script's help documentation for available arguments.
 To run the script, type the following into your terminal:
 
 ```bash
-pipenv run ./ws_connect.py --help
+pipenv run ./drfq/ws_connect.py --help
 ```
 
-### [auto_taker](auto_taker/)
+### [auto_taker](drfq/auto_taker/)
 
 The `auto_taker` tool is designed to send a Deribit RFQ to a specific maker
 every 10 seconds. The RFQs are preconfigured and are chosen at random on each
@@ -87,9 +87,9 @@ docker run -it  --rm \
 ```
 _Note_: Edit the first few lines with your API credentials, the Deribit
 account name configured on your desk's admin dashboard, and the maker desk
-ticker you want the RFQs sent to. 
+ticker you want the RFQs sent to.
 
-### [market_maker](marker_maker/)
+### [market_maker](drfq/marker_maker/)
 
 The `market_maker` tool is designed to automatically respond to RFQs via the
 Paradigm API. The tool responds to RFQs with random prices from the exchange's
@@ -134,7 +134,7 @@ docker run -it --rm \
 _Note_: Edit the first few lines with your API credentials and the account names
 from your desk's admin dashboard for any venues you want enabled.
 
-### [market_taker](market_taker/)
+### [market_taker](drfq/market_taker/)
 
 The `market_taker` tool is designed to automatically accept quotes via the
 Paradigm API. The tool will automatically execute the quote with the best price
@@ -170,3 +170,34 @@ docker run -it --rm \
   market_taker
 ```
 _Note_: Edit the first couple lines with your API credentials.
+
+
+## GRFQ scripts
+
+### [auto_taker.py](grfq/auto_taker.py)
+
+The `auto_taker.py` script is CLI tool that can be used to run a basic taker flow for grfq.
+
+See the script's help documentation for available arguments.
+
+#### Usage
+
+To run the script, type the following into your terminal:
+
+```bash
+pipenv run ./grfq/auto_taker.py
+```
+
+### [auto_maker.py](grfq/auto_maker.py)
+
+The `auto_maker.py` script is CLI tool that can be used to run a basic maker flow for grfq.
+
+See the script's help documentation for available arguments.
+
+#### Usage
+
+To run the script, type the following into your terminal:
+
+```bash
+pipenv run ./grfq/auto_maker.py
+```
