@@ -201,3 +201,21 @@ To run the script, type the following into your terminal:
 ```bash
 pipenv run ./grfq/auto_maker.py
 ```
+
+
+## Future Spreads (FSPD) scripts
+
+### [auto_maker.py](fspd/auto_maker.py)
+
+The `auto_maker.py` script is CLI tool that can be used to run a basic
+maker flow for future spreads.
+
+See the script's help documentation for available arguments.
+
+#### Usage
+
+To run the script, type the following into your terminal:
+
+```bash
+pipenv run ./fspd/auto_maker.py
+```
