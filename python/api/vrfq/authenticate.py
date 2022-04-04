@@ -5,7 +5,7 @@
 # Created Date: 04/04/2022
 # version ='0.01'
 # ---------------------------------------------------------------------------
-""" Module to generate JWT signature """
+''' Module to generate JWT signature '''
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
@@ -32,7 +32,8 @@ class Authenticator:
       key (str): API key in PKSI format
   '''
   def __init__(self, key: str):
-    self.key = f"-----BEGIN PRIVATE KEY-----\n{key}\n-----END PRIVATE KEY-----"
+    self.key = '-----BEGIN PRIVATE KEY-----\n' \
+      + key + '\n-----END PRIVATE KEY-----'
 
   def signJWT(self, payload: dict):
     '''

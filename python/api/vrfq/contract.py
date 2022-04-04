@@ -5,7 +5,7 @@
 # Created Date: 04/04/2022
 # version ='0.01'
 # ---------------------------------------------------------------------------
-""" Abstract class for contract factory """
+''' Abstract class for contract factory '''
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
@@ -38,7 +38,7 @@ class ContractFactory:
     self.w3 = Web3(Web3.HTTPProvider(rpc))
 
     if not self.w3.isConnected():
-      raise ValueError("RPC connection error")
+      raise ValueError('RPC connection error')
 
     with open(self.abi) as f:
       self.abi = json.load(f)

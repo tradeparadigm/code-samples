@@ -5,7 +5,7 @@
 # Created Date: 04/04/2022
 # version ='0.01'
 # ---------------------------------------------------------------------------
-""" Module to generate signature to bid """
+''' Module to generate signature to bid '''
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
@@ -42,9 +42,9 @@ class SignatureGenerator:
     signature = self.signer.sign_msg_hash(bytes.fromhex(messageHash[2:]))
 
     return {
-      "v": signature.v + 27,
-      "r": hex(signature.r),
-      "s": hex(signature.s)
+      'v': signature.v + 27,
+      'r': hex(signature.r),
+      's': hex(signature.s)
     }
 
   def _signTypedDataV4(self, domain: dict, types: dict, value: dict) -> str:
@@ -77,14 +77,14 @@ class SignatureGenerator:
     signature = self._signTypedDataV4(domain, types, bid)
 
     return {
-      "swapId": bid["swapId"],
-      "nonce": bid["nonce"],
-      "signerWallet": bid["signerWallet"],
-      "sellAmount": bid["sellAmount"],
-      "buyAmount": bid["buyAmount"],
-      "referrer": bid["referrer"],
-      "v": signature["v"],
-      "r": signature["r"],
-      "s": signature["s"]
+      'swapId': bid['swapId'],
+      'nonce': bid['nonce'],
+      'signerWallet': bid['signerWallet'],
+      'sellAmount': bid['sellAmount'],
+      'buyAmount': bid['buyAmount'],
+      'referrer': bid['referrer'],
+      'v': signature['v'],
+      'r': signature['r'],
+      's': signature['s']
     }
 

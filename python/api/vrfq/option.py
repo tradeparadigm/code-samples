@@ -5,7 +5,7 @@
 # Created Date: 04/04/2022
 # version ='0.01'
 # ---------------------------------------------------------------------------
-""" Abstract class for contract factory """
+''' Abstract class for contract factory '''
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
@@ -45,10 +45,10 @@ class oTokenFactory(ContractFactory):
     details = self.contract.functions.getOtokenDetails().call()
 
     return {
-      "collateralAsset": details[0], 
-      "underlyingAsset": details[1], 
-      "strikeAsset": details[2], 
-      "strikePrice": details[3], 
-      "expiryTimestamp": details[4], 
-      "isPut": details[5]
+      'collateralAsset': details[0], 
+      'underlyingAsset': details[1], 
+      'strikeAsset': details[2], 
+      'strikePrice': details[3], 
+      'expiryTimestamp': details[4], 
+      'isPut': details[5]
     }

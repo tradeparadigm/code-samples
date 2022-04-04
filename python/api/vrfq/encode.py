@@ -5,7 +5,7 @@
 # Created Date: 04/04/2022
 # version ='0.01'
 # ---------------------------------------------------------------------------
-""" Module to encode message """
+''' Module to encode message '''
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
@@ -19,18 +19,18 @@ from utils import *
 # Constants
 # ---------------------------------------------------------------------------
 DOMAIN_FIELD_NAMES = [
-  "name", 
-  "version", 
-  "chainId", 
-  "verifyingContract", 
-  "salt"
+  'name', 
+  'version', 
+  'chainId', 
+  'verifyingContract', 
+  'salt'
 ]
 DOMAIN_FIELD_TYPES = {
-    "name": "string",
-    "version": "string",
-    "chainId": "uint256",
-    "verifyingContract": "address",
-    "salt": "bytes32"
+    'name': 'string',
+    'version': 'string',
+    'chainId': 'uint256',
+    'verifyingContract': 'address',
+    'salt': 'bytes32'
 }
 
 HEX_TRUE = hexZeroPad(Web3.toHex(1), 32)
@@ -49,8 +49,8 @@ def uintEncoder(type: str) -> object:
   Returns:
       encoder (object): Uint encoder
   '''
-  match = re.findall("^(u?)int(\d*)$", type).pop()
-  signed = (match[1] == "")
+  match = re.findall('^(u?)int(\d*)$', type).pop()
+  signed = (match[1] == '')
   width = int(match[2]) if len(match) == 3 else 256
 
   if (
@@ -58,14 +58,14 @@ def uintEncoder(type: str) -> object:
     or width > 256
     or (len(match) == 3 and match[2] != str(width))
   ):
-    raise ValueError(f"Invalid numeric width: {type}")
+    raise ValueError(f'Invalid numeric width: {type}')
   
   boundsUpper = 2**(width-1) - 1 if signed else 2**(width) - 1
   boundsLower = (boundsUpper + 1)*(-1)
   return lambda value: \
     hexZeroPad(Web3.toHex(int(value)), 32) \
       if int(value) < boundsUpper and int(value) > boundsLower \
-      else ValueError("Value out of bounds")
+      else ValueError('Value out of bounds')
 
 def bytesEncoder(type: str) -> object:
   '''
@@ -77,15 +77,15 @@ def bytesEncoder(type: str) -> object:
   Returns:
       encoder (object): Bytes encoder
   '''
-  match = re.findall("^bytes(\d+)$", type).pop()
+  match = re.findall('^bytes(\d+)$', type).pop()
   width = int(match[1])
 
   if width == 0 or width > 32 or match[1] != str(width):
-    raise ValueError(f"Invalid bytes width: {type}")
+    raise ValueError(f'Invalid bytes width: {type}')
 
   return lambda value: \
     hexPadRight(value) if len(value) == width \
-    else ValueError("Invalid bytes length")
+    else ValueError('Invalid bytes length')
 
 def getBaseEncoder(type: str) -> object:
   '''
@@ -97,17 +97,17 @@ def getBaseEncoder(type: str) -> object:
   Returns:
       encoder (object): Encoder
   '''
-  if re.match("^(u?)int(\d*)$", type):
+  if re.match('^(u?)int(\d*)$', type):
     return uintEncoder(type)
-  elif re.match("^bytes(\d+)$", type):
+  elif re.match('^bytes(\d+)$', type):
     return bytesEncoder(type)
-  elif type == "address":
+  elif type == 'address':
     return lambda value: hexZeroPad(getAddress(value), 32)
-  elif type == "bool":
+  elif type == 'bool':
     return lambda value: HEX_TRUE if value else HEX_FALSE
-  elif type == "bytes":
+  elif type == 'bytes':
     return lambda value: Web3.keccak(text=value)
-  elif type == "string":
+  elif type == 'string':
     return lambda value: id(value)
   else:
     return None
@@ -145,17 +145,17 @@ class TypedDataEncoder:
       uniqueNames = {}
 
       for field in types[name]:
-        fieldName = field["name"]
+        fieldName = field['name']
         
         if fieldName in uniqueNames.keys():
-          raise ValueError(f"Duplicate variable name {fieldName} in {name}")
+          raise ValueError(f'Duplicate variable name {fieldName} in {name}')
 
         uniqueNames[fieldName] = True
 
-        baseType = re.sub("\[[^()]*\]", "", field["type"])
+        baseType = re.sub('\[[^()]*\]', '', field['type'])
 
         if baseType == name:
-          raise ValueError(f"Circular type reference: {baseType}")
+          raise ValueError(f'Circular type reference: {baseType}')
 
         encoder = getBaseEncoder(baseType)
 
@@ -169,15 +169,15 @@ class TypedDataEncoder:
       if len(self.parents[type]) == 0]
 
     if len(primaryTypes) == 0:
-      raise ValueError("Missing primary type")
+      raise ValueError('Missing primary type')
     elif len(primaryTypes) > 1:
-      raise ValueError("Ambiguous primary types or unused types")
+      raise ValueError('Ambiguous primary types or unused types')
 
     self.primaryType = primaryTypes[0]
 
     def checkCircular(type: str, found: dict):
       if type in found.keys():
-        raise ValueError(f"Circular type reference to {type}")
+        raise ValueError(f'Circular type reference to {type}')
       
       found[type] = True
 
@@ -196,7 +196,7 @@ class TypedDataEncoder:
       st = list(self.subtypes[name].keys())
       st.sort()
       self._types[name] = encodeType(name, types[name]) \
-        + "".join([encodeType(t, types[t]) for t in st])
+        + ''.join([encodeType(t, types[t]) for t in st])
 
   def _getEncoder(self, type: str) -> object:
     '''
@@ -212,9 +212,9 @@ class TypedDataEncoder:
     if encoder is not None:
       return encoder
 
-    match = re.findall("\[[^()]*\]", type)
+    match = re.findall('\[[^()]*\]', type)
     if len(match) > 0:
-      match = type[:-1].split("[")
+      match = type[:-1].split('[')
       subtype = match[0]
       subEncoder = self.getEncoder(subtype)
       length = 0 if len(match) == 1 else int(match[1])
@@ -228,16 +228,16 @@ class TypedDataEncoder:
           )
         ).hex() \
           if length >= 0 and len(values) == length \
-          else ValueError("Array length mismatched")
+          else ValueError('Array length mismatched')
 
     fields = self.types[type]
     if fields is not None:
       encodedType = id(self._types[type])
       return lambda value: hexConcat(
-        [encodedType] + [self.getEncoder(field["type"])(value[field["name"]]) 
-          if field["type"] not in self._types.keys() \
+        [encodedType] + [self.getEncoder(field['type'])(value[field['name']]) 
+          if field['type'] not in self._types.keys() \
           else Web3.keccak(
-            text=self.getEncoder(field["type"])(value[field["name"]])
+            text=self.getEncoder(field['type'])(value[field['name']])
           ).hex() for field in fields]
         )
 
@@ -338,13 +338,17 @@ class TypedDataEncoder:
     domainFields = []
     for name in domain.keys():
       if name not in DOMAIN_FIELD_NAMES:
-        raise ValueError("Invalid domain key")
+        raise ValueError('Invalid domain key')
       
-      domainFields.append({"name": name, "type": DOMAIN_FIELD_TYPES[name]})
+      domainFields.append({'name': name, 'type': DOMAIN_FIELD_TYPES[name]})
     
-    domainFields.sort(key=lambda x: DOMAIN_FIELD_NAMES.index(x["name"]))
-    
-    return TypedDataEncoder._hashStruct("EIP712Domain", { "EIP712Domain": domainFields }, domain)
+    domainFields.sort(key=lambda x: DOMAIN_FIELD_NAMES.index(x['name']))
+
+    return TypedDataEncoder._hashStruct(
+      'EIP712Domain', 
+      { 'EIP712Domain': domainFields }, 
+      domain
+    )
 
   @staticmethod
   def encode(domain: dict, types: dict, value: dict) -> str:
@@ -360,7 +364,7 @@ class TypedDataEncoder:
         data (str): Encoded message
     '''
     return hexConcat([
-      "0x1901",
+      '0x1901',
       TypedDataEncoder.hashDomain(domain),
       TypedDataEncoder._from(types).hash(value)
     ])
@@ -379,4 +383,6 @@ class TypedDataEncoder:
     Returns:
         hash (str): Hash of message
     '''
-    return Web3.keccak(hexstr=TypedDataEncoder.encode(domain, types, value)).hex()
+    return Web3.keccak(
+      hexstr=TypedDataEncoder.encode(domain, types, value)
+    ).hex()

@@ -5,7 +5,7 @@
 # Created Date: 04/04/2022
 # version ='0.01'
 # ---------------------------------------------------------------------------
-""" Abstract class for contract factory """
+''' Abstract class for contract factory '''
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
@@ -59,17 +59,17 @@ class SwapFactory(ContractFactory):
         's': bid['s'],
       }
     except:
-      raise TypeError("Invalid bid")
+      raise TypeError('Invalid bid')
 
     response = self.contract.functions.check(params).call()
     
     errors = response[0]
     if errors == 0:
-      return {"errors": 0}
+      return {'errors': 0}
     else:
       return {
-        "errors": errors,
-        "messages": [Web3.toText(msg).replace("\x00", "") 
+        'errors': errors,
+        'messages': [Web3.toText(msg).replace('\x00', '') 
           for msg in response[1][1:errors]
         ]
       }

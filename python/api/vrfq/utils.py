@@ -5,7 +5,7 @@
 # Created Date: 04/04/2022
 # version ='0.01'
 # ---------------------------------------------------------------------------
-""" Utility functions for encode.py """
+''' Utility functions for encode.py '''
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
@@ -45,7 +45,7 @@ def getAddress(address: str) -> str:
       address (str): Returns address if valid
   '''
   if not Web3.isAddress(address):
-    raise ValueError(f"Invalid address: {address}")
+    raise ValueError(f'Invalid address: {address}')
 
   return address
 
@@ -59,7 +59,7 @@ def hexConcat(items: list) -> str:
   Returns:
       hex (str): Concatenated hex
   '''
-  result = "0x"
+  result = '0x'
   for i in items:
     result += i[2:]
   return result
@@ -76,7 +76,7 @@ def isHexString(value: str, length: int=None) -> bool:
       isHex (bool): Boolean whether the given value is 
         hex of a given length
   '''
-  if not isinstance(value, str) or not re.match("^0x[0-9A-Fa-f]*$", value):
+  if not isinstance(value, str) or not re.match('^0x[0-9A-Fa-f]*$', value):
     return False
   if length and len(value) != (2 + 2 * length):
     return False
@@ -94,12 +94,12 @@ def hexZeroPad(value: str, length: int) -> str:
       hex (object): Hex with padding
   '''
   if not isHexString(value):
-    raise ValueError(f"Invalid hex string: {value}")
+    raise ValueError(f'Invalid hex string: {value}')
   elif (len(value) > 2 * length + 2):
-    raise ValueError(f"Value out of range: {value}, {length}")
+    raise ValueError(f'Value out of range: {value}, {length}')
   
   while (len(value) < 2 * length + 2):
-    value = "0x0" + value[2:]
+    value = '0x0' + value[2:]
   
   return value
 
@@ -129,5 +129,5 @@ def encodeType(name: str, fields: list) -> str:
   Returns:
       data (object): Encoded type
   '''
-  fields = ",".join([i["type"] + " " + i["name"] for i in fields])
-  return f"{name}({fields})"
+  fields = ','.join([i['type'] + ' ' + i['name'] for i in fields])
+  return f'{name}({fields})'
