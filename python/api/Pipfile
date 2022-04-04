@@ -8,6 +8,10 @@ requests = "*"
 click = "*"
 websockets = "*"
 click-log = "*"
+web3 = "*"
+eth-tester = "*"
+eth-keys = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
