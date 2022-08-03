@@ -1,0 +1,3 @@
+git+https://github.com/tradeparadigm/sdks.git@30455f784966f86d022d600af6438ecac13f3a7d#egg=opyn&subdirectory=opyn
+git+https://github.com/tradeparadigm/sdks.git@30455f784966f86d022d600af6438ecac13f3a7d#egg=ribbon&subdirectory=ribbon
+git+https://github.com/tradeparadigm/sdks.git@c31d0102e35a9407cc26437dcb64674a6ed430fe#egg=friktion&subdirectory=friktion
