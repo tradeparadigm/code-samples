@@ -8,6 +8,16 @@ from ribbon.definitions import Domain
 
 from paradigm_api import ParadigmClient, ParadigmCredential
 
+
+def _get_value_from_env(key: str, default=None):
+    value = os.getenv(key, default=default)
+
+    if not value:
+        raise ValueError(f'Must provide a value for {key}')
+
+    return value
+
+
 # TODO: add sign function to RibbonSDK interface
 def sign_ribbon_bid(
     paradigm_client: ParadigmClient,
@@ -47,20 +57,15 @@ def sign_ribbon_bid(
 
 
 if __name__ == "__main__":
-    PARADIGM_API_HOST = os.getenv('PARADIGM_API_HOST', 'https://api.test.paradigm.co')
-    PARADIGM_ACCESS_KEY = os.getenv('PARADIGM_ACCESS_KEY')
-    PARADIGM_SECRET_KEY = os.getenv('PARADIGM_SECRET_KEY')
-    WALLET_PRIVATE_KEY = os.getenv('WALLET_PRIVATE_KEY')
+    host = _get_value_from_env('PARADIGM_API_HOST', default='https://api.test.paradigm.co')
+    access_key = _get_value_from_env('PARADIGM_ACCESS_KEY')
+    secret_key = _get_value_from_env('PARADIGM_SECRET_KEY')
+    wallet_private_key = _get_value_from_env('WALLET_PRIVATE_KEY')
 
-    paradigm_credential = ParadigmCredential(
-        access_key=PARADIGM_ACCESS_KEY,
-        secret_key=PARADIGM_SECRET_KEY,
-    )
-    paradigm_client = ParadigmClient(
-        credential=paradigm_credential,
-        host=PARADIGM_API_HOST
-    )
+    paradigm_credential = ParadigmCredential(access_key=access_key, secret_key=secret_key)
+    paradigm_client = ParadigmClient(credential=paradigm_credential, host=host)
 
+    # Adjust parameters to the rfq/quote at hand
     rfq_id = 14
     nonce = 123
     price = Decimal('0.1')
@@ -72,6 +77,6 @@ if __name__ == "__main__":
         nonce=nonce,
         price=price,
         wallet_name=wallet_name,
-        wallet_private_key=WALLET_PRIVATE_KEY,
+        wallet_private_key=wallet_private_key,
     )
     print(f'Signature: {signature}')
