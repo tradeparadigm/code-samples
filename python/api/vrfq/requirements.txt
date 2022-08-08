@@ -1,4 +1,3 @@
 git+https://github.com/tradeparadigm/sdks.git#egg=sdk_commons&subdirectory=sdk_commons
-git+https://github.com/tradeparadigm/sdks.git#egg=opyn&subdirectory=opyn
 git+https://github.com/tradeparadigm/sdks.git#egg=ribbon&subdirectory=ribbon
 git+https://github.com/tradeparadigm/sdks.git#egg=friktion&subdirectory=friktion

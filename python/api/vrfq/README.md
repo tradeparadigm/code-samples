@@ -19,8 +19,10 @@ WALLET_PRIVATE_KEY=<wallet-private-key>
 
 ## Run
 
-Adjust parameters on `ribbon_example.py` and execute the file:
+Set the venue and bid parameters in the command line interface
 
 ```
-python ribbon_example.py
+python3 main.py friktion --rfq_id=19 --price=0.1 --wallet_name=test
+
+python3 main.py ribbon --rfq_id=14 --price=0.1 --wallet_name=ribbon-w1
 ```

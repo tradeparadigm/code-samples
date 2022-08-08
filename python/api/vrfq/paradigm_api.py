@@ -3,8 +3,11 @@ from dataclasses import dataclass
 from decimal import Decimal
 import hmac
 import json
+import random
 import requests
 import time
+
+MAX_RANDOM_INT = 99999999
 
 
 @dataclass
@@ -54,7 +57,12 @@ class ParadigmClient:
         return next(rfq for rfq in results if rfq['id'] == id)
 
     def get_bidding_data(
-        self, rfq_id: int, nonce: int, price: Decimal, wallet_name: str, use_delegated_wallet=False
+        self,
+        rfq_id: int,
+        price: Decimal,
+        wallet_name: str,
+        use_nonce=False,
+        use_delegated_wallet=False,
     ) -> dict:
         # POST /v1/vrfq/rfqs/{rfq_id}/pricing/
         method = 'POST'
@@ -62,10 +70,13 @@ class ParadigmClient:
 
         payload = {
             "account": wallet_name,
-            "nonce": nonce,
             "price": str(price),
             "use_delegated_wallet": use_delegated_wallet,
         }
+
+        if use_nonce:
+            payload['nonce'] = random.randint(1, MAX_RANDOM_INT)
+
         json_payload = json.dumps(payload)
 
         headers = self._build_headers(method, path, json_payload)
