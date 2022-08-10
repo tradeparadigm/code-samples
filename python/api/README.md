@@ -89,7 +89,7 @@ _Note_: Edit the first few lines with your API credentials, the Deribit
 account name configured on your desk's admin dashboard, and the maker desk
 ticker you want the RFQs sent to.
 
-### [market_maker](drfq/marker_maker/)
+### [market_maker](drfq/market_maker/)
 
 The `market_maker` tool is designed to automatically respond to RFQs via the
 Paradigm API. The tool responds to RFQs with random prices from the exchange's
