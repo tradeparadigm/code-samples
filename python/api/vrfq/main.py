@@ -37,10 +37,10 @@ def main(venue: Venue, rfq_id: int, price: str, wallet_name: str):
 
     if venue == Venue.FRIKTION:
         sign_fn = sign_friktion_bid
-        wallet_private_key = _get_value_from_env('FRIKTION_WALLET_PRIVATE_KEY')
+        wallet_private_key = _get_value_from_env('SOLANA_WALLET_PRIVATE_KEY')
     elif venue == Venue.RIBBON:
         sign_fn = sign_ribbon_bid
-        wallet_private_key = _get_value_from_env('RIBBON_WALLET_PRIVATE_KEY')
+        wallet_private_key = _get_value_from_env('EVM_WALLET_PRIVATE_KEY')
     else:
         raise NotImplementedError(f'Bid signing not implemented for venue {venue}')
 

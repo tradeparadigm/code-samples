@@ -14,7 +14,10 @@ Export variables:
 ```
 PARADIGM_ACCESS_KEY=<access-key>
 PARADIGM_SECRET_KEY=<secret-key>
-WALLET_PRIVATE_KEY=<wallet-private-key>
+
+# export the wallet private key address for the chain you want to sign bids
+EVM_WALLET_PRIVATE_KEY=<wallet-private-key>
+SOLANA_WALLET_PRIVATE_KEY=<wallet-private-key>
 ```
 
 ## Run
