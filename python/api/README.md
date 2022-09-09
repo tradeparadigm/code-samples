@@ -203,6 +203,16 @@ pipenv run ./grfq/auto_maker.py
 ```
 
 
+## VRFQ scripts
+
+### [sign_quote.py](vrfq/sign_quote.py)
+
+The `sign_quote.py` script is a CLI tool that can be used to run the 
+basic maker flow in DOV auctions,
+by signing a bid for the Blockchain and place a bid with it.
+
+More info is available in the [dedicated README](vrfq#signing-quotes---code-samples).
+
 ## Future Spreads (FSPD) scripts
 
 ### [auto_maker.py](fspd/auto_maker.py)
