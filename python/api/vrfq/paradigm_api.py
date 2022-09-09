@@ -45,7 +45,6 @@ class ParadigmClient:
         }
 
     def get_rfq_data(self, id: int) -> dict:
-        # TODO: expose endpoint GET /v1/vrfq/rfqs/{id}
         # GET /v1/vrfq/rfqs/
         method = 'GET'
         path = '/v1/vrfq/rfqs'
@@ -82,3 +81,6 @@ class ParadigmClient:
         headers = self._build_headers(method, path, json_payload)
         response = requests.post(f"{self.host}{path}", headers=headers, json=payload)
         return response.json()
+
+    def get_make_bid(self):
+        pass
