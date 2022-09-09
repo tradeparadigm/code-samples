@@ -31,10 +31,13 @@ class ParadigmClient:
 
         return timestamp, signature
 
-    def _build_headers(self, method: str, path: str, payload: str):
+    def _build_headers(self, method: str, path: str, payload: str = None):
+        if method.lower() in ['get', 'delete']:
+            payload = ''
+
         timestamp, signature = self._sign_request(
             secret_key=self.credential.secret_key,
-            method=method.encode('utf-8'),
+            method=method.upper().encode('utf-8'),
             path=path.encode('utf-8'),
             body=payload.encode('utf-8'),
         )
@@ -45,13 +48,17 @@ class ParadigmClient:
         }
 
     def get_rfq_data(self, rfq_id: int) -> dict:
-        # GET /v1/vrfq/rfqs/
-        method = 'GET'
+        """
+        GET /v1/vrfq/rfqs/
+        https://docs.paradigm.co/#get-rfqs-2
+        """
+        method = 'get'
         path = '/v1/vrfq/rfqs'
         payload = ''
         headers = self._build_headers(method, path, payload)
 
-        response = requests.get(f"{self.host}{path}", headers=headers)
+        request_callable = getattr(requests, method)
+        response = request_callable(f"{self.host}{path}", headers=headers)
         results = response.json()['results']
         try:
             return next(rfq for rfq in results if rfq['id'] == rfq_id)
@@ -66,8 +73,11 @@ class ParadigmClient:
         use_nonce=False,
         use_delegated_wallet=False,
     ) -> dict:
-        # POST /v1/vrfq/rfqs/{rfq_id}/pricing/
-        method = 'POST'
+        """
+        POST /v1/vrfq/rfqs/{rfq_id}/pricing/
+        https://docs.paradigm.co/#post-rfqs-rfq_id-pricing
+        """
+        method = 'post'
         path = f'/v1/vrfq/rfqs/{rfq_id}/pricing/'
 
         payload = {
@@ -82,8 +92,35 @@ class ParadigmClient:
         json_payload = json.dumps(payload)
 
         headers = self._build_headers(method, path, json_payload)
-        response = requests.post(f"{self.host}{path}", headers=headers, json=payload)
+        request_callable = getattr(requests, method)
+        response = request_callable(f"{self.host}{path}", headers=headers, json=payload)
         return response.json()
 
-    def get_make_bid(self):
-        pass
+    def place_bid(self, rfq_id: int, price: Decimal, wallet_name: str, bid_payload: dict):
+        """
+        POST /v1/vrfq/rfqs/{rfq_id}/quotes/
+        https://docs.paradigm.co/#post-rfqs-rfq_id-quotes-2
+        """
+        method = 'post'
+        path = f'/v1/vrfq/rfqs/{rfq_id}/quotes/'
+        payload = {
+            "account": wallet_name,
+            "price": str(price),
+            **bid_payload,
+        }
+
+        json_payload = json.dumps(payload)
+        headers = self._build_headers(method, path, json_payload)
+        request_callable = getattr(requests, method)
+        response = request_callable(f"{self.host}{path}", headers=headers, json=payload)
+        return response.json()
+
+    def remove_bid(self, quote_id: int):
+        """
+        DELETE /v1/vrfq/quotes/{quote_id}/
+        https://docs.paradigm.co/#delete-quotes-quote_id-2
+        """
+        method = 'delete'
+        path = f'/v1/vrfq/quotes/{quote_id}'
+        request_callable = getattr(requests, method)
+        return request_callable(f"{self.host}{path}", headers=self._build_headers(method, path))

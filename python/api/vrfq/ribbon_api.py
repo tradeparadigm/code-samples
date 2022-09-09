@@ -17,11 +17,7 @@ def sign_ribbon_bid(
     rfq_data = paradigm_client.get_rfq_data(rfq_id)
 
     bidding_data = paradigm_client.get_bidding_data(
-        rfq_id,
-        price,
-        wallet_name,
-        use_nonce=True,
-        use_delegated_wallet=use_delegated_wallet
+        rfq_id, price, wallet_name, use_nonce=True, use_delegated_wallet=use_delegated_wallet
     )
 
     sdk = RibbonSDKConfig()
@@ -29,7 +25,7 @@ def sign_ribbon_bid(
     print('Bid details to be signed:')
     pprint(bidding_data)
 
-    return sdk.sign_bid(
+    signature = sdk.sign_bid(
         contract_address=rfq_data['domain']['verifying_contract'],
         chain_id=rfq_data['domain']['chain_id'],
         public_key=None,
@@ -41,3 +37,7 @@ def sign_ribbon_bid(
         buy_amount=bidding_data['buy_amount'],
         referrer=bidding_data['referrer'],
     )
+    print(f'Signature: {signature}')
+
+    bidding_data['signature'] = signature
+    return bidding_data
