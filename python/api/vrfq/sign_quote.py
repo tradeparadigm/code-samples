@@ -27,6 +27,10 @@ class Venue(str, Enum):
 @click.option('--price', required=True)
 @click.option('--wallet_name', required=True)
 def main(venue: Venue, rfq_id: int, price: str, wallet_name: str, seconds: int = 5):
+
+    ###########################
+    # SETUP
+
     host = _get_value_from_env('PARADIGM_API_HOST', default='https://api.test.paradigm.co')
     access_key = _get_value_from_env('PARADIGM_ACCESS_KEY')
     secret_key = _get_value_from_env('PARADIGM_SECRET_KEY')
@@ -37,22 +41,36 @@ def main(venue: Venue, rfq_id: int, price: str, wallet_name: str, seconds: int =
     if venue == Venue.RIBBON:
         sign_fn = sign_ribbon_bid
         wallet_private_key = _get_value_from_env('EVM_WALLET_PRIVATE_KEY')
+        use_nonce = True
     else:
         raise NotImplementedError(f'Bid signing not implemented for venue {venue}')
 
     price = Decimal(price)
 
-    bid_payload = sign_fn(
-        paradigm_client=paradigm_client,
-        rfq_id=rfq_id,
-        price=price,
-        wallet_name=wallet_name,
-        wallet_private_key=wallet_private_key,
+    ###########################
+    # FLOW
+
+    # Get data (listen to websockets otherwise)
+    rfq_data = paradigm_client.get_rfq_data(rfq_id)
+
+    # True if using multi signature
+    use_delegated_wallet = False
+
+    # Get the valid format of payload to sign
+    bidding_data = paradigm_client.get_bidding_data(
+        rfq_id, price, wallet_name, use_nonce=use_nonce, use_delegated_wallet=use_delegated_wallet
     )
 
-    response = paradigm_client.place_bid(rfq_id, price, wallet_name, bid_payload)
+    # Build signature
+    bidding_data['signature'] = sign_fn(
+        rfq_data, bidding_data, wallet_private_key=wallet_private_key
+    )
+
+    # Create quote
+    response = paradigm_client.place_bid(rfq_id, price, wallet_name, bidding_data)
     print(f"Bid response:\n{response}")
 
+    # Cancel latest quote
     if quote_id := response.get('id'):
         print(f"Removing in {seconds} seconds")
         time.sleep(seconds)

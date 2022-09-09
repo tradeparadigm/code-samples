@@ -1,29 +1,13 @@
-from decimal import Decimal
-from pprint import pprint
-
 from ribbon.config import RibbonSDKConfig
-
-from paradigm_api import ParadigmClient
 
 
 def sign_ribbon_bid(
-    paradigm_client: ParadigmClient,
-    rfq_id: str,
-    price: Decimal,
-    wallet_name: str,
+    rfq_data: dict,
+    bidding_data: dict,
     wallet_private_key: str,
-    use_delegated_wallet=False,
 ) -> str:
-    rfq_data = paradigm_client.get_rfq_data(rfq_id)
-
-    bidding_data = paradigm_client.get_bidding_data(
-        rfq_id, price, wallet_name, use_nonce=True, use_delegated_wallet=use_delegated_wallet
-    )
 
     sdk = RibbonSDKConfig()
-
-    print('Bid details to be signed:')
-    pprint(bidding_data)
 
     signature = sdk.sign_bid(
         contract_address=rfq_data['domain']['verifying_contract'],
@@ -39,5 +23,4 @@ def sign_ribbon_bid(
     )
     print(f'Signature: {signature}')
 
-    bidding_data['signature'] = signature
-    return bidding_data
+    return signature
