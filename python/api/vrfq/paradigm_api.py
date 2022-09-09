@@ -44,7 +44,7 @@ class ParadigmClient:
             'Authorization': f'Bearer {self.credential.access_key}',
         }
 
-    def get_rfq_data(self, id: int) -> dict:
+    def get_rfq_data(self, rfq_id: int) -> dict:
         # GET /v1/vrfq/rfqs/
         method = 'GET'
         path = '/v1/vrfq/rfqs'
@@ -53,7 +53,10 @@ class ParadigmClient:
 
         response = requests.get(f"{self.host}{path}", headers=headers)
         results = response.json()['results']
-        return next(rfq for rfq in results if rfq['id'] == id)
+        try:
+            return next(rfq for rfq in results if rfq['id'] == rfq_id)
+        except StopIteration:
+            raise ValueError(f"RFQ with id {rfq_id} not found.")
 
     def get_bidding_data(
         self,
