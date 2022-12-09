@@ -1,0 +1,34 @@
+version: '3'
+services:
+  # TESTNET
+  # DRFQv2 Auto Maker Makers
+  drfqv2-amm-nightly-1:
+     image: drfqv2marketmaker:latest
+     deploy:
+      restart_policy:
+        condition: on-failure
+     environment:
+     - PYTHONUNBUFFERED=1
+     - LOGGING_LEVEL=INFO
+     - ENVIRONMENT=TESTNET
+     - MAKER_ACCOUNT_NAME=1
+     - MAKER_ACCESS_KEY=1
+     - MAKER_SECRET_KEY=1
+     - ORDER_PRICE_WORSE_THAN_MARK_FLAG=True
+     - ORDER_PRICING_TICK_MULTIPLE=10
+     - ORDER_REFRESH_WINDOW_LOWER_BOUNDARY=0
+     - ORDER_REFRESH_WINDOW_UPPER_BOUNDARY=1
+
+  # DRFQv2 Auto Maker Takers
+  drfqv2-amt-nightly-1:
+     image: drfqv2markettaker:latest
+     deploy:
+      restart_policy:
+        condition: on-failure
+     environment:
+     - PYTHONUNBUFFERED=1
+     - LOGGING_LEVEL=INFO
+     - ENVIRONMENT=TESTNET
+     - TAKER_ACCOUNT_NAME=1
+     - TAKER_ACCESS_KEY=1
+     - TAKER_SECRET_KEY=1
