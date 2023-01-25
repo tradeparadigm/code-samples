@@ -17,6 +17,7 @@ class RFQCreator:
     """
     def __init__(
         self,
+        account_name: str,
         rest_client: ParadigmRESTClient,
         managed_instruments: ManagedInstruments
             ) -> None:
@@ -111,6 +112,7 @@ class RFQCreator:
         rfq: Dict = {
                     "venue": venue,
                     "is_taker_anonymous": is_taker_anonymous,
+                    "account_name": self.account_name,
                     "counterparties": ["DSK94", "AAT42", "AAT44", "AAT43", "ANDY"],
                     "legs": []
                     }
