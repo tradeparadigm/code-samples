@@ -113,6 +113,7 @@ class main:
 
         # Instantiate RFQ Creator Class
         self.rfq_creator: RFQCreator = RFQCreator(
+            account_name=self.account_name,
             rest_client=self.rest_client,
             managed_instruments=self.managed_instruments
             )
