@@ -70,7 +70,7 @@ class Instrument:
         self.venue_name: str = message['venue_instrument_name']
         self.min_tick_size: float = message['min_tick_size']
         self.min_order_size_increment: float = float(message['min_order_size_increment'])
-        self.min_block_size: float = message['min_block_size']
+        self.min_block_size: float = float(message['min_block_size'])
         self.state: InstrumentState = InstrumentState[message['state']]
 
         if 'greeks' in list(message):
@@ -108,11 +108,19 @@ class RFQLeg:
         self.id: int = message['instrument_id']
         self.side: OrderDirection = OrderDirection[message['side']]
         if 'price' in list(message):
-            self.hedge_leg_flag: bool = True
-            self.price: float = message['price']
+            if message['price'] is not None:
+                self.hedge_leg_flag: bool = True
+                self.price: float = message['price']
+            else:
+                self.hedge_leg_flag: bool = False
+                self.price: None = None
         else:
             self.hedge_leg_flag: bool = False
             self.price: None = None
+
+        # Order price
+        self.buy_order_price: float = None
+        self.sell_order_price: float = None
 
         # BBO
         self.mark_price: float = ''
@@ -142,6 +150,20 @@ class RFQLeg:
         self.mark_price: float = ''
         self.min_price: float = ''
         self.max_price: float = ''
+
+    def update_order_price(
+        self,
+        order_direction: OrderDirection,
+        order_price: float
+            ) -> None:
+        """
+        Updates a price attribute used to represent
+        the last price used in an order for the leg.
+        """
+        if order_direction == OrderDirection.BUY:
+            self.buy_order_price = order_price
+        else:
+            self.sell_order_price = order_price
 
 
 class RFQ:

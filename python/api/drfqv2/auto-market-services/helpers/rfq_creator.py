@@ -21,6 +21,7 @@ class RFQCreator:
         rest_client: ParadigmRESTClient,
         managed_instruments: ManagedInstruments
             ) -> None:
+        self.account_name: str = account_name
         self.rest_client: ParadigmRESTClient = rest_client
         self.managed_instruments: ManagedInstruments = managed_instruments
 
@@ -62,7 +63,7 @@ class RFQCreator:
         return 'OPTION'
 
     async def choose_random_base_currency(self) -> str:
-        return choice(['BTC', 'ETH'])
+        return choice(['BTC'])
 
     async def choose_random_instrument(
         self,
@@ -110,10 +111,11 @@ class RFQCreator:
             quantity: float = instrument.min_block_size
 
         rfq: Dict = {
+                    "account_name": self.account_name,
                     "venue": venue,
                     "is_taker_anonymous": is_taker_anonymous,
-                    "account_name": self.account_name,
-                    "counterparties": ["DSK94", "AAT42", "AAT44", "AAT43", "ANDY"],
+                    # "counterparties": ["DSK94", "AAT42", "AAT44", "AAT43"],
+                    "counterparties": ["TAT0"],
                     "legs": []
                     }
         for instrument in random_instruments:
@@ -126,15 +128,9 @@ class RFQCreator:
             )
 
         # Add Quantity after determining composite Instruments
-        rfq['quantity'] = str(quantity * randint(1, 2))
+        rfq['quantity'] = str(quantity)
         # _quantity = float(rfq['quantity'])
         # logging.info(f'Quantity amount: {_quantity}')
-        # if base_currency == 'BTC':
-        #     if _quantity > 125:
-        #         print('dog')
-        # elif base_currency == 'ETH':
-        #     if _quantity > 1250:
-        #         print('dog')
         # Ensure the first leg has a Ratio of 1
         rfq['legs'][0]['ratio'] = "1"
         # Ensure the first leg is a BUY
@@ -160,4 +156,4 @@ class RFQCreator:
                 logging.info(f'RFQ Create Status Code: {status_code} | Response: {response}')
             # rfq_id: str = response['id']
             # logging.info(f'Created RFQ ID : {rfq_id}')
-            await asyncio.sleep(10)
+            await asyncio.sleep(60)
