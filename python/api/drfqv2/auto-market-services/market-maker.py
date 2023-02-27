@@ -209,7 +209,7 @@ class main:
 
 if __name__ == "__main__":
     # Paradigm Operating Environment
-    environment = os.getenv('ENVIRONMENT', 'NIGHTLY')
+    environment = os.getenv('ENVIRONMENT', 'TESTNET')
     # Paradigm Connection URLs
     ws_url: str = f'wss://ws.api.{environment.lower()}.paradigm.trade/v2/drfq'
     http_url: str = f'https://api.{environment.lower()}.paradigm.trade'

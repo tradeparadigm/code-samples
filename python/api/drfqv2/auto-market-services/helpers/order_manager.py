@@ -1,6 +1,6 @@
 # built ins
 import asyncio
-from random import uniform, choice
+from random import uniform, choice, randint
 from typing import Dict, List
 from abc import ABC, abstractmethod
 import logging
@@ -146,7 +146,8 @@ class OrderManager(ABC):
 
     async def create_leg_price(
         self,
-        leg: RFQLeg
+        leg: RFQLeg,
+        order_direction: OrderDirection = OrderDirection.BUY
             ) -> float:
         """
         Creates a leg price depending upon the
@@ -155,13 +156,27 @@ class OrderManager(ABC):
         if leg.hedge_leg_flag:
             return leg.price
         else:
+            random_multiple: int = randint(
+                self.order_pricing_tick_multiple / 2,
+                self.order_pricing_tick_multiple
+                )
             if leg.side == OrderDirection.BUY:
-                price: float = leg.mark_price - (self.order_pricing_tick_multiple * leg.min_tick_size)
+                price: float = float(leg.mark_price) - (random_multiple * float(leg.min_tick_size))
+
+                if leg.sell_order_price:
+                    if price <= leg.sell_order_price:
+                        price = leg.sell_order_price - (random_multiple * float(leg.min_tick_size))
             else:
-                price: float = leg.mark_price + (self.order_pricing_tick_multiple * leg.min_tick_size)
+                price: float = float(leg.mark_price) + (random_multiple * float(leg.min_tick_size))
+
+                if leg.buy_order_price:
+                    if price >= leg.buy_order_price:
+                        price = leg.buy_order_price + (random_multiple * float(leg.min_tick_size))
 
             if price <= 0:
-                price = leg.mark_price
+                price = float(leg.mark_price)
+                if price <= 0:
+                    price = float(leg.min_tick_size)
             return round(price, leg.price_precision)
 
     async def order_manager(self) -> None:
@@ -310,7 +325,7 @@ class MakerOrderManager(OrderManager):
             status_code, response = await self.rest_client.post_orders(
                 payload=order_payload
                 )
-            # logging.info(f'RFQ ID: {rfq_sid} | Create {order_direction.name} Order | Status Code: {status_code}')
+            # logging.info(f'RFQ ID: {rfq_id} | Create {order_direction.name} Order | Status Code: {status_code}')
         else:
             status_code, response = await self.rest_client.put_orders_replace(
                 payload=order_payload,
@@ -319,9 +334,6 @@ class MakerOrderManager(OrderManager):
             # logging.info(f'RFQ ID: {rfq_id} | Replace {order_direction.name} Order | Status Code: {status_code}')
 
         if status_code == 400:
-            logging.info(f'Is Create Request: {is_create_operation}')
-            logging.info(f'Status Code: {status_code} | Response: {response}')
-
             if response['code'] in [3009, 3001]:
                 self.managed_rfqs.rfqs[rfq_id].orders[order_direction].reset_order_id()
             elif response['code'] in [2001]:
@@ -329,6 +341,11 @@ class MakerOrderManager(OrderManager):
                     await self.managed_rfqs.remove_closed_rfq(
                         rfq=self.managed_rfqs.rfqs[rfq_id]
                         )
+            elif response['code'] in [3504]:
+                pass
+            else:
+                logging.info(f'Is Create Request: {is_create_operation}')
+                logging.info(f'Status Code: {status_code} | Response: {response}')
 
         if rfq_id not in list(self.managed_rfqs.rfqs):
             return None
@@ -357,9 +374,13 @@ class MakerOrderManager(OrderManager):
         # Add legs to Order Payload
         for instrument_id, leg in self.managed_rfqs.rfqs[rfq.id].legs.items():
             price: float = await self.create_leg_price(
+                order_direction=order_direction,
                 leg=leg
                 )
-
+            self.managed_rfqs.rfqs[rfq.id].legs[instrument_id].update_order_price(
+                order_direction=order_direction,
+                order_price=price
+                )
             order_payload['legs'].append(
                 {
                     'instrument_id': instrument_id,
@@ -424,16 +445,17 @@ class TakerOrderManager(OrderManager):
         Organizes and calls the manage_order_operation_request
         coroutine for the user role in the Trade.
         """
-        for rfq_id, rfq in self.managed_rfqs.rfqs.items():
-            # Randomize Order side operated upon
-            side: OrderDirection = choice(list(OrderDirection))
+        pass
+        # for rfq_id, rfq in self.managed_rfqs.rfqs.items():
+        #     # Randomize Order side operated upon
+        #     side: OrderDirection = choice(list(OrderDirection))
 
-            asyncio.get_event_loop().create_task(
-                self.manage_order_operation_request(
-                    rfq_id=rfq_id,
-                    order_direction=side
-                    )
-                )
+        #     asyncio.get_event_loop().create_task(
+        #         self.manage_order_operation_request(
+        #             rfq_id=rfq_id,
+        #             order_direction=side
+        #             )
+        #         )
 
     async def pick_random_rfq_order_price(
         self,
@@ -443,6 +465,8 @@ class TakerOrderManager(OrderManager):
         """
         Picks a random RFQ Order from an RFQ and returns the price.
         """
+        if rfq.rfq_orders[order_direction] == {}:
+            return None
         rfq_order_id: str = choice(list(rfq.rfq_orders[order_direction]))
         rfq_order: RFQOrder = rfq.rfq_orders[order_direction][rfq_order_id]
         return rfq_order.price
@@ -459,6 +483,8 @@ class TakerOrderManager(OrderManager):
             rfq=rfq,
             order_direction=order_direction
             )
+        if not random_rfq_order_price:
+            return None
 
         side: OrderDirection = OrderDirection.BUY if order_direction.SELL else order_direction.BUY
 
@@ -504,10 +530,15 @@ class TakerOrderManager(OrderManager):
                 ):
             return None
 
+        await asyncio.sleep(10)
+
         order_payload: Dict = await self.create_order_payload(
             rfq=rfq,
             order_direction=order_direction
             )
+        # If the RFQ Orders is no longer available with a price
+        if not order_payload:
+            return None
 
         if rfq_id not in list(self.managed_rfqs.rfqs):
             return None
@@ -522,8 +553,8 @@ class TakerOrderManager(OrderManager):
         if status_code == 201:
             await self.increment_order_operation_count()
 
-        if status_code == 400:
-            logging.info(f'Status Code: {status_code} | Response: {response}')
+        # if status_code == 400:
+        #     logging.info(f'Status Code: {status_code} | Response: {response}')
 
         if rfq_id not in list(self.managed_rfqs.rfqs):
             return None

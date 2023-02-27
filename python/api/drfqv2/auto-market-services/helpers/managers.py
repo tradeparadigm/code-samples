@@ -232,6 +232,22 @@ class ManagedRFQs(ABC):
                     )
                 )
 
+    async def ingest_market_data_update(
+        self,
+        message: Dict
+            ) -> None:
+        """
+        Ingests a message from the bbo.{rfq_id} WS channel
+        and updates the mark price of managed RFQ legs.
+        """
+        rfq_id: str = message['params']['data']['rfq_id']
+        hashmap: Dict[str, str] = {}
+        for leg in message['params']['data']['legs']:
+            hashmap[leg['instrument_id']] = leg['mark_price']
+        if rfq_id in self.rfqs:
+            for instrument_id, mark_price in hashmap.items():
+                self.rfqs[rfq_id].legs[instrument_id].mark_price = mark_price
+
     async def ingest_ws_message(
         self,
         message: Dict
@@ -249,8 +265,10 @@ class ManagedRFQs(ABC):
                 venue_interface=VenueInterface.WS
                 )
             await self.ingest_rfq_update(rfq=rfq)
-        elif ws_channel_base == 'venue_bbo':
-            pass
+        elif ws_channel_base == 'bbo':
+            await self.ingest_market_data_update(
+                message=message
+                )
         elif ws_channel_base == 'orders':
             rfq_id: str = message['params']['data']['rfq_id']
             if rfq_id not in list(self.rfqs):
@@ -283,30 +301,6 @@ class MakerManagedRFQs(ManagedRFQs):
             managed_instruments
             )
 
-        # Crude VenueBBO WS Channel substitue
-        asyncio.get_event_loop().create_task(
-            self.crude_venue_bbo_rest_requester()
-            )
-
-    async def crude_venue_bbo_rest_requester(self) -> None:
-        """
-        Something to hold me over until the venue_bbo ws channel works.
-        """
-        while True:
-            if not self.rfqs:
-                pass
-            else:
-                response: List[Instrument] = await self.rest_client.get_instruments()
-                instrument_hash: Dict[str, Instrument] = {}
-                for instrument in response:
-                    instrument_hash[instrument.id] = instrument
-
-                for rfq_id, rfq in self.rfqs.items():
-                    for instrument_id, leg in rfq.legs.items():
-                        self.rfqs[rfq.id].legs[instrument_id].mark_price = instrument_hash[instrument_id].mark_price
-
-            await asyncio.sleep(1)
-
     async def action_on_open_rfq(
         self,
         rfq_id: str
@@ -317,7 +311,7 @@ class MakerManagedRFQs(ManagedRFQs):
         """
         # Subscribe to venue_bbo.* WS Channel
         await self.ws_client.create_send_ws_operation(
-            channel=f'venue_bbo.{rfq_id}',
+            channel=f'bbo.{rfq_id}',
             operation='subscribe'
             )
 
@@ -331,7 +325,7 @@ class MakerManagedRFQs(ManagedRFQs):
         """
         # Subscribe to venue_bbo.* WS Channel
         await self.ws_client.create_send_ws_operation(
-            channel=f'venue_bbo.{rfq_id}',
+            channel=f'bbo.{rfq_id}',
             operation='unsubscribe'
             )
 
