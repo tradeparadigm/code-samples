@@ -124,7 +124,7 @@ class main:
             channels_to_subscribe_on_start=[
                 'rfqs',
                 'orders',
-                'mmp'
+                'market_maker_protection'
                 ]
             )
 
