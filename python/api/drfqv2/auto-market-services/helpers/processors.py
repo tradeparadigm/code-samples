@@ -38,7 +38,7 @@ class ParadigmWSMessageProcessor:
 
             ws_channel: str = msg['params']['channel']
 
-            if ws_channel == 'mmp':
+            if ws_channel == 'market_maker_protection':
                 await self.managed_mmp.ingest_ws_message(
                     message=msg
                     )
