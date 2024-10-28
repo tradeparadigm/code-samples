@@ -173,12 +173,15 @@ class main:
             await asyncio.sleep(600)
 
     async def test_create_rfq(self) -> None:
+        access_key = os.environ.get('TAKER_ACCESS_KEY')
+        secret_key = os.environ.get('TAKER_SECRET_KEY')
+
         while not self.ws_client.connection_authentication:
             await asyncio.sleep(0)
         client: ParadigmRESTClient = ParadigmRESTClient(
             connection_url=self.http_url,
-            access_key='Z9gBdD05yiHLotRCxrSeFTfC',
-            secret_key='9qgG7DU0XNaqF9n5Q35iQtL5Bv7JFNUffagT7/qC9jlH0exj'
+            access_key=access_key,
+            secret_key=secret_key
             )
 
         while True:
